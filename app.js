@@ -1,5 +1,5 @@
 // ── TIMES 주거 매물 관리 v1.0.0 ──
-const APP_VERSION = 'v1.2.5';
+const APP_VERSION = 'v1.2.6';
 const { useState, useEffect, useRef } = React;
 
 // ── 상수 ──
@@ -677,15 +677,26 @@ function TourCards({ listings, clientName, reportDate, bizName, agentName, agent
           </div>
         )}
 
-        {/* 메모란 */}
-        <div style={{border:'0.5pt dashed #ccc',padding:'3pt 5pt',marginTop:'4pt',flexShrink:0}}>
-          <div style={{fontSize:'6pt',color:'#bbb',marginBottom:'2pt'}}>✎ 메모</div>
+        {/* 메모란 — flex:1로 남은 공간 모두 채움 */}
+        <div style={{flex:1,border:'0.5pt dashed #ccc',padding:'4pt 6pt',marginTop:'4pt',display:'flex',flexDirection:'column'}}>
+          <div style={{fontSize:'6pt',color:'#bbb',marginBottom:'3pt',letterSpacing:'.05em'}}>✎ 메모</div>
           {ls.notes ? (
-            <div style={{fontSize:'7.5pt',color:'#333',lineHeight:1.5}}>{ls.notes}</div>
+            <div style={{flex:1}}>
+              {ls.notes.split('\n').filter(function(l){return l.trim();}).map(function(line,i){
+                return (
+                  <div key={i} style={{display:'flex',gap:'4pt',fontSize:'7.5pt',color:'#333',lineHeight:1.6,marginBottom:'1pt'}}>
+                    <span style={{color:'#c9a84c',flexShrink:0,fontWeight:700}}>•</span>
+                    <span>{line}</span>
+                  </div>
+                );
+              })}
+            </div>
           ) : (
-            <div style={{display:'flex',flexDirection:'column',gap:'5pt'}}>
-              <div style={{borderBottom:'0.3pt solid #e0e0e0',height:'6pt'}} />
-              <div style={{borderBottom:'0.3pt solid #e0e0e0',height:'6pt'}} />
+            <div style={{flex:1,display:'flex',flexDirection:'column',justifyContent:'space-around'}}>
+              <div style={{borderBottom:'0.3pt solid #e0e0e0'}} />
+              <div style={{borderBottom:'0.3pt solid #e0e0e0'}} />
+              <div style={{borderBottom:'0.3pt solid #e0e0e0'}} />
+              <div style={{borderBottom:'0.3pt solid #e0e0e0'}} />
             </div>
           )}
         </div>
