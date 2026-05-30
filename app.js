@@ -1,5 +1,5 @@
 // ── TIMES 주거 매물 관리 v1.0.0 ──
-const APP_VERSION = 'v1.4.2';
+const APP_VERSION = 'v1.4.3';
 const { useState, useEffect, useRef } = React;
 
 // ── 상수 ──
@@ -485,10 +485,10 @@ function BriefingSheet({ listings, clientName, reportDate, bizName, bizAddr, age
             </div>
           </div>
 
-          <table style={{borderCollapse:'collapse',tableLayout:'fixed',width:'100%'}}>
+          <table style={{borderCollapse:'collapse',tableLayout:'fixed',width:'auto',maxWidth:'100%'}}>
             <colgroup>
               <col style={{width:'58pt'}} />
-              {chunk.map((_,i)=><col key={i} style={{width:Math.floor((780-58)/chunk.length)+'pt'}} />)}
+              {chunk.map((_,i)=><col key={i} style={{width:'120pt'}} />)}
             </colgroup>
             <thead>
               <tr>
