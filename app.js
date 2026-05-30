@@ -1,5 +1,5 @@
 // ── TIMES 주거 매물 관리 v1.0.0 ──
-const APP_VERSION = 'v1.4.0';
+const APP_VERSION = 'v1.4.1';
 const { useState, useEffect, useRef } = React;
 
 // ── 상수 ──
@@ -449,10 +449,10 @@ function BriefingSheet({ listings, clientName, reportDate, bizName, bizAddr, age
 
   const BD = '0.5pt solid #e0dcd4';
   const BDH = '2pt solid #0d1b2a';
-  const thS = { background:'#0d1b2a',color:'white',padding:'5pt 6pt',fontSize:'8pt',fontWeight:600,textAlign:'center',border:'0.5pt solid #0d1b2a',verticalAlign:'top',lineHeight:1.3 };
-  const labelS = { background:'#f5f2eb',padding:'4pt 6pt',fontSize:'7.5pt',fontWeight:600,color:'#555',border:BD,textAlign:'center',verticalAlign:'middle',whiteSpace:'nowrap' };
-  const cellS = (i) => ({ padding:'4pt 6pt',fontSize:'8.5pt',textAlign:'center',border:BD,background:i%2===0?'white':'#fafaf8',verticalAlign:'middle' });
-  const hiCellS = (i) => ({ padding:'4pt 6pt',fontSize:'9pt',fontWeight:700,textAlign:'center',border:BD,background:i%2===0?'#f0f7ff':'#e8f4fd',verticalAlign:'middle',color:'#1a5276' });
+  const thS = { background:'#0d1b2a',color:'white',padding:'6pt 7pt',fontSize:'10pt',fontWeight:600,textAlign:'center',border:'0.5pt solid #0d1b2a',verticalAlign:'top',lineHeight:1.3 };
+  const labelS = { background:'#f5f2eb',padding:'5pt 7pt',fontSize:'9pt',fontWeight:600,color:'#555',border:BD,textAlign:'center',verticalAlign:'middle',whiteSpace:'nowrap' };
+  const cellS = (i) => ({ padding:'5pt 7pt',fontSize:'10pt',textAlign:'center',border:BD,background:i%2===0?'white':'#fafaf8',verticalAlign:'middle' });
+  const hiCellS = (i) => ({ padding:'5pt 7pt',fontSize:'11pt',fontWeight:700,textAlign:'center',border:BD,background:i%2===0?'#f0f7ff':'#e8f4fd',verticalAlign:'middle',color:'#1a5276' });
 
   return (
     <>
@@ -461,39 +461,50 @@ function BriefingSheet({ listings, clientName, reportDate, bizName, bizAddr, age
           {/* 헤더 */}
           <div style={{borderBottom:'1.5pt solid #0d1b2a',paddingBottom:'6pt',marginBottom:'10pt',display:'flex',justifyContent:'space-between',alignItems:'flex-end'}}>
             <div>
-              <div style={{fontSize:'7pt',letterSpacing:'.15em',color:'#c9a84c',marginBottom:'5pt'}}>TIMES REAL ESTATE</div>
-              <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'24pt',fontWeight:600,color:'#0d1b2a',lineHeight:1}}>
+              <div style={{fontSize:'8pt',letterSpacing:'.15em',color:'#c9a84c',marginBottom:'5pt'}}>TIMES REAL ESTATE</div>
+              <div style={{fontFamily:"'Noto Sans KR','Apple SD Gothic Neo',sans-serif",fontSize:'24pt',fontWeight:700,color:'#0d1b2a',lineHeight:1}}>
                 {clientName||'매물 브리핑 시트'}
               </div>
             </div>
-            <div style={{textAlign:'right',fontSize:'8pt',color:'#aaa'}}>
+            <div style={{textAlign:'right',fontSize:'9pt',color:'#aaa'}}>
               {reportDate}&nbsp;·&nbsp;총 {sel.length}건
               {chunks.length>1&&<span>&nbsp;·&nbsp;{ci+1}/{chunks.length}</span>}
             </div>
           </div>
 
-          <table style={{borderCollapse:'collapse',tableLayout:'fixed',width: chunk.length < 7 ? (52 + chunk.length*99)+'pt' : '100%'}}>
+          <table style={{borderCollapse:'collapse',tableLayout:'fixed',width: chunk.length < 7 ? (60 + chunk.length*108)+'pt' : '100%'}}>
             <colgroup>
-              <col style={{width:'52pt'}} />
-              {chunk.map((_,i)=><col key={i} style={{width:'99pt'}} />)}
+              <col style={{width:'60pt'}} />
+              {chunk.map((_,i)=><col key={i} style={{width:'108pt'}} />)}
             </colgroup>
             <thead>
               <tr>
-                <th style={{...thS,background:'#0d1b2a',color:'#c9a84c',fontSize:'7pt',verticalAlign:'middle'}}>항목</th>
+                <th style={{...thS,background:'#0d1b2a',color:'#c9a84c',fontSize:'9pt',verticalAlign:'middle'}}>항목</th>
                 {chunk.map((l,i)=>(
                   <th key={l.id} style={thS}>
-                    <div style={{fontSize:'6.5pt',color:DEAL_COLOR[l.dealType]||'#c9a84c',marginBottom:'2pt',fontWeight:700}}>
+                    <div style={{fontSize:'9pt',color:DEAL_COLOR[l.dealType]||'#c9a84c',marginBottom:'3pt',fontWeight:700}}>
                       {'①②③④⑤⑥⑦⑧⑨⑩'[i+(ci*CHUNK)]} {DEAL_LABEL[l.dealType]}
                     </div>
-                    <div style={{fontSize:'9.5pt',fontFamily:"'Cormorant Garamond',serif",fontWeight:700,lineHeight:1.2}}>
+                    <div style={{fontSize:'11pt',fontFamily:"'Noto Sans KR','Apple SD Gothic Neo',sans-serif",fontWeight:700,lineHeight:1.2,color:'white'}}>
                       {l.complexName}
                     </div>
-                    {l.dong&&<div style={{fontSize:'7pt',color:'#c9a84c',marginTop:'1pt'}}>{l.dong}동</div>}
+                    {l.dong&&<div style={{fontSize:'9pt',color:'#c9a84c',marginTop:'2pt'}}>{l.dong}동</div>}
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody>
+              {/* 거래유형 행 (전세/월세만) */}
+              {!isSale&&(
+                <tr>
+                  <td style={{...labelS,color:'#555'}}>거래유형</td>
+                  {chunk.map((l,i)=>(
+                    <td key={l.id} style={{...cellS(i),fontWeight:700,color:DEAL_COLOR[l.dealType]||'#888'}}>
+                      {DEAL_LABEL[l.dealType]||'—'}
+                    </td>
+                  ))}
+                </tr>
+              )}
               {/* 가격 행 */}
               {isSale&&chunk.some(l=>l.salePrice)&&(
                 <tr><td style={labelS}>매매가</td>{chunk.map((l,i)=><td key={l.id} style={hiCellS(i)}>{l.salePrice?fmt(l.salePrice):'—'}</td>)}</tr>
@@ -520,7 +531,7 @@ function BriefingSheet({ listings, clientName, reportDate, bizName, bizAddr, age
               {chunk.some(l=>l.moveIn)&&<tr><td style={labelS}>입주가능</td>{chunk.map((l,i)=><td key={l.id} style={cellS(i)}>{l.moveIn||'—'}</td>)}</tr>}
               {chunk.some(l=>l.approvalDate)&&<tr><td style={labelS}>사용승인</td>{chunk.map((l,i)=><td key={l.id} style={cellS(i)}>{l.approvalDate||'—'}</td>)}</tr>}
               {chunk.some(l=>l.parking)&&<tr><td style={labelS}>주차</td>{chunk.map((l,i)=><td key={l.id} style={cellS(i)}>{l.parking||'—'}</td>)}</tr>}
-              {/* 평단가 (매매만) */}
+              {/* 평당가 (매매만) */}
               {isSale&&(
                 <>
                   <tr><td style={{...labelS,borderTop:'1pt solid #ccc8c0',color:'#1a5276'}}>공급평당가</td>
@@ -532,16 +543,16 @@ function BriefingSheet({ listings, clientName, reportDate, bizName, bizAddr, age
               {/* 비고 */}
               {chunk.some(l=>l.notes)&&(
                 <tr><td style={{...labelS,borderTop:'1pt solid #ccc8c0'}}>비고</td>
-                  {chunk.map((l,i)=><td key={l.id} style={{...cellS(i),borderTop:'1pt solid #ccc8c0',fontSize:'7.5pt',textAlign:l.notes?'left':'center'}}>{l.notes||'—'}</td>)}</tr>
+                  {chunk.map((l,i)=><td key={l.id} style={{...cellS(i),borderTop:'1pt solid #ccc8c0',fontSize:'9pt',textAlign:l.notes?'left':'center'}}>{l.notes||'—'}</td>)}</tr>
               )}
             </tbody>
           </table>
 
           {/* 푸터 */}
-          <div style={{marginTop:'8pt',borderTop:'1pt solid #c9a84c',paddingTop:'5pt',display:'flex',justifyContent:'space-between',alignItems:'center',fontSize:'8pt',color:'#555'}}>
+          <div style={{marginTop:'8pt',borderTop:'1pt solid #c9a84c',paddingTop:'5pt',display:'flex',justifyContent:'space-between',alignItems:'center',fontSize:'9pt',color:'#555'}}>
             <span style={{display:'flex',alignItems:'center',gap:'8pt'}}>
               {logoSrc&&<img src={logoSrc} style={{height:'18pt',objectFit:'contain'}} />}
-              {bizName&&<strong style={{color:'#0d1b2a',fontSize:'9pt'}}>{bizName}</strong>}
+              {bizName&&<strong style={{color:'#0d1b2a',fontSize:'10pt'}}>{bizName}</strong>}
               {bizAddr&&<span style={{color:'#888',marginLeft:'6pt'}}>{bizAddr}</span>}
             </span>
             <span>
