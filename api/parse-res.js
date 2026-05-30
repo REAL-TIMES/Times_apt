@@ -1,0 +1,73 @@
+// api/parse-res.js — 네이버 주거 매물 텍스트 파싱 (Claude AI)
+export default async function handler(req, res) {
+  if (req.method !== 'POST') { res.status(405).end(); return; }
+  const { text } = req.body;
+  if (!text) { res.status(400).json({ error: 'text required' }); return; }
+  const key = process.env.ANTHROPIC_API_KEY;
+  if (!key) { res.status(500).json({ error: 'ANTHROPIC_API_KEY not set' }); return; }
+
+  const prompt = `다음은 네이버 부동산 주거 매물 페이지 텍스트입니다. 아래 JSON 필드를 추출하세요.
+
+텍스트:
+${text.slice(0, 4000)}
+
+추출할 필드 (없으면 null):
+- complexName: 단지명/건물명 (예: "래미안원베일리")
+- dong: 동 (예: "106")
+- address: 주소
+- dealType: "sale"(매매), "jeonse"(전세), "monthly"(월세/반전세), "rent"(렌트)
+- salePrice: 매매가 만원 숫자 (예: 120000)
+- jeonsePrice: 전세가 만원 숫자 (예: 166560)
+- deposit: 보증금 만원 숫자 (월세/반전세일 때)
+- monthlyRent: 월세 만원 숫자
+- mgmtFee: 관리비 만원 숫자 (예: 25)
+- supplyM2: 공급면적 ㎡ 숫자 (예: 80.63)
+- exclusiveM2: 전용면적 ㎡ 숫자 (예: 59.96)
+- floor: 해당층 (예: "중", "15", "고", "저")
+- totalFloor: 총층 숫자
+- rooms: 방수 숫자
+- bathrooms: 욕실수 숫자
+- direction: 향 (예: "남향", "남동향")
+- moveIn: 입주가능일 (예: "즉시입주", "2026년 10월 30일")
+- approvalDate: 사용승인일 (예: "2021.11.24")
+- parking: 주차 (예: "6대")
+- elevator: 엘리베이터 (예: "1대", "있음")
+- heating: 난방 (예: "개별난방 / 도시가스")
+- units: 세대수 숫자
+- notes: 매물 제목/특이사항
+
+중요: 면적은 반드시 ㎡로 추출. 반전세는 dealType="monthly"에 deposit+monthlyRent 분리.
+JSON만 반환, 마크다운 없이.`;
+
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }],
+      }),
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error ? data.error.message : 'API error');
+    const raw = data.content[0].text.trim();
+    const clean = raw.replace(/^```json\s*/,'').replace(/^```\s*/,'').replace(/```\s*$/,'').trim();
+    const parsed = JSON.parse(clean);
+    // ㎡ → 평 자동 환산
+    const PY = 3.30579;
+    if (parsed.supplyM2) parsed.supplyPy = String(+(parseFloat(parsed.supplyM2)/PY).toFixed(2));
+    if (parsed.exclusiveM2) parsed.exclusivePy = String(+(parseFloat(parsed.exclusiveM2)/PY).toFixed(2));
+    // 숫자 필드 → 문자열 변환
+    ['salePrice','jeonsePrice','deposit','monthlyRent','mgmtFee','totalFloor','rooms','bathrooms','units'].forEach(k => {
+      if (parsed[k] !== null && parsed[k] !== undefined) parsed[k] = String(parsed[k]);
+    });
+    res.status(200).json(parsed);
+  } catch(e) {
+    res.status(500).json({ error: e.message });
+  }
+}
