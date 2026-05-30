@@ -16,14 +16,10 @@ const initSB = (url, key) => { _sb = window.supabase.createClient(url, key); ret
 
 // ── DB ──
 const dbLoad = async () => {
-  const { data, error } = await getSB().rpc('get_residential_no_photo').catch(() => ({ data: null, error: true }));
-  if (error || !data) {
-    const { data: d2, error: e2 } = await getSB()
-      .from(TBL).select('id, data, updated_at').order('updated_at', {ascending:true}).limit(300);
-    if (e2) throw e2;
-    return d2.map(r => { var d = Object.assign({}, r.data||{}); delete d.photo; return d; });
-  }
-  return data.map(r => Object.assign({}, r.listing_data||{}));
+  const { data, error } = await getSB()
+    .from(TBL).select('id, data, updated_at').order('updated_at', {ascending:true}).limit(300);
+  if (error) throw error;
+  return data.map(r => Object.assign({}, r.data||{}));
 };
 const dbUpsert = async (item) => {
   const { error } = await getSB().from(TBL)
