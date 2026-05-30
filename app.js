@@ -1,5 +1,5 @@
 // ── TIMES 주거 매물 관리 v1.0.0 ──
-const APP_VERSION = 'v1.2.6';
+const APP_VERSION = 'v1.2.7';
 const { useState, useEffect, useRef } = React;
 
 // ── 상수 ──
@@ -709,7 +709,7 @@ function TourCards({ listings, clientName, reportDate, bizName, agentName, agent
       {chunks.map((chunk, ci) => (
         <div key={ci} className="print-only"
           style={{pageBreakBefore:ci>0?'always':'auto',breakBefore:ci>0?'page':'auto',
-            height:'277mm',display:'flex',flexDirection:'column',boxSizing:'border-box',overflow:'hidden'}}>
+            height:'268mm',display:'flex',flexDirection:'column',boxSizing:'border-box',overflow:'hidden'}}>
 
           {/* 페이지 헤더 */}
           <div style={{borderBottom:'1.5pt solid #0d1b2a',paddingBottom:'5pt',marginBottom:'6pt',
@@ -953,7 +953,7 @@ function App() {
 
   const printCSS = view==='briefing'
     ? '@media print { @page { size:A4 landscape !important; margin:10mm 10mm 14mm; } .print-only { display:block !important; } .screen-only { display:none !important; } .no-print { display:none !important; } }'
-    : '@media print { @page { size:A4 portrait !important; margin:10mm 10mm 14mm; } .print-only { display:block !important; } .screen-only { display:none !important; } .no-print { display:none !important; } }';
+    : '@media print { @page { size:A4 portrait !important; margin:10mm; } .print-only { display:block !important; } .screen-only { display:none !important; } .no-print { display:none !important; } }';
 
   const TABS = [
     {id:'list',     label:'📋 매물 목록'},
