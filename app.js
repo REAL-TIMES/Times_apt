@@ -1,5 +1,5 @@
 // ── TIMES 주거 매물 관리 v1.0.0 ──
-const APP_VERSION = 'v1.0.0';
+const APP_VERSION = 'v1.1.0';
 const { useState, useEffect, useRef } = React;
 
 // ── 상수 ──
@@ -43,6 +43,7 @@ const fmt   = v => {
   return a.toLocaleString()+'만원';
 };
 const fmtPy = (price, py) => (!price||!py||n(py)===0)?'—': Math.round(n(price)/n(py)).toLocaleString()+'만원';
+const perPy = (price, py) => (!price||!py||n(py)===0)?null: Math.round(n(price)/n(py));
 const loadInfo = () => { try { return JSON.parse(localStorage.getItem(STO_INFO)||'{}'); } catch { return {}; } };
 const saveInfo = obj => localStorage.setItem(STO_INFO, JSON.stringify(obj));
 
@@ -471,10 +472,10 @@ function BriefingSheet({ listings, clientName, reportDate, bizName, bizAddr, age
             </div>
           </div>
 
-          <table style={{borderCollapse:'collapse',width:'100%',tableLayout:'fixed'}}>
+          <table style={{borderCollapse:'collapse',tableLayout:'fixed',width: chunk.length < 7 ? (52 + chunk.length*99)+'pt' : '100%'}}>
             <colgroup>
-              <col style={{width:'72pt'}} />
-              {chunk.map((_,i)=><col key={i} style={{width:`${(100-10)/chunk.length}%`}} />)}
+              <col style={{width:'52pt'}} />
+              {chunk.map((_,i)=><col key={i} style={{width:'99pt'}} />)}
             </colgroup>
             <thead>
               <tr>
