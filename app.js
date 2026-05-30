@@ -1,5 +1,5 @@
 // ── TIMES 주거 매물 관리 v1.0.0 ──
-const APP_VERSION = 'v1.2.3';
+const APP_VERSION = 'v1.2.4';
 const { useState, useEffect, useRef } = React;
 
 // ── 상수 ──
@@ -1065,13 +1065,13 @@ function App() {
         )}
 
         {!loading&&view==='briefing'&&(
-          <BriefingSheet listings={listings} clientName={clientName} reportDate={reportDate}
+          <BriefingSheet listings={filteredListings} clientName={clientName} reportDate={reportDate}
             bizName={info.bizName} bizAddr={info.bizAddr} agentName={info.agentName}
             agentPhone={info.agentPhone} logoSrc={info.logoSrc} />
         )}
 
         {!loading&&view==='tour'&&(
-          <TourCards listings={listings} clientName={clientName} reportDate={reportDate}
+          <TourCards listings={filteredListings} clientName={clientName} reportDate={reportDate}
             bizName={info.bizName} agentName={info.agentName} agentPhone={info.agentPhone} logoSrc={info.logoSrc} />
         )}
       </main>
