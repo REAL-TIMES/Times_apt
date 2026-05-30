@@ -1,5 +1,5 @@
 // ── TIMES 주거 매물 관리 v1.0.0 ──
-const APP_VERSION = 'v1.2.8';
+const APP_VERSION = 'v1.2.9';
 const { useState, useEffect, useRef } = React;
 
 // ── 상수 ──
@@ -625,13 +625,13 @@ function TourCards({ listings, clientName, reportDate, bizName, agentName, agent
         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'5pt',marginBottom:'7pt'}}>
           {isSale&&ls.salePrice&&(
             <div style={{background:'#eaf0f8',padding:'6pt 9pt',gridColumn:'1/-1'}}>
-              <div style={{fontSize:'9pt',color:'#1a5276',letterSpacing:'.1em',marginBottom:'2pt'}}>SALE / 매매가</div>
+              <div style={{fontSize:'9pt',color:'#1a5276',letterSpacing:'.05em',marginBottom:'2pt'}}>매매가</div>
               <div style={{fontSize:'16pt',fontWeight:700,color:'#1a5276',lineHeight:1}}>{fmt(ls.salePrice)}</div>
             </div>
           )}
           {!isSale&&ls.jeonsePrice&&(
             <div style={{background:'#eafaf1',padding:'6pt 9pt',gridColumn:'1/-1'}}>
-              <div style={{fontSize:'9pt',color:'#196f3d',letterSpacing:'.1em',marginBottom:'2pt'}}>JEONSE / 전세가</div>
+              <div style={{fontSize:'9pt',color:'#196f3d',letterSpacing:'.05em',marginBottom:'2pt'}}>전세가</div>
               <div style={{fontSize:'16pt',fontWeight:700,color:'#196f3d',lineHeight:1}}>{fmt(ls.jeonsePrice)}</div>
             </div>
           )}
@@ -652,7 +652,7 @@ function TourCards({ listings, clientName, reportDate, bizName, agentName, agent
         {/* 상세 정보 */}
         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'4pt',marginBottom:'6pt'}}>
           {[
-            ['면적', ls.supplyPy?(ls.supplyPy+'평'):'—', ls.exclusivePy?('전용 '+ls.exclusivePy+'평'):null],
+            ['면적', ls.supplyPy?(ls.supplyPy+'평형'):'—', ls.exclusivePy?('전용 '+ls.exclusivePy+'평형'):null],
             ['층', ls.floor?(ls.floor+(ls.totalFloor?'/'+ls.totalFloor+'층':'층')):'—', null],
             ['방/욕실', (ls.rooms||'—')+'/'+(ls.bathrooms||'—'), null],
             ['향', ls.direction||'—', null],
@@ -681,11 +681,11 @@ function TourCards({ listings, clientName, reportDate, bizName, agentName, agent
         )}
 
         {/* 메모란 — flex:1로 남은 공간 모두 채움 */}
-        <div style={{flex:1,border:'0.5pt dashed #ccc',padding:'5pt 7pt',marginTop:'4pt',display:'flex',flexDirection:'column'}}>
+        <div style={{flex:1,border:'0.5pt dashed #ccc',padding:'5pt 7pt',marginTop:'4pt',display:'flex',flexDirection:'column',minHeight:'40pt'}}>
           <div style={{fontSize:'8pt',color:'#bbb',marginBottom:'4pt',letterSpacing:'.05em'}}>✎ 메모</div>
           {ls.notes ? (
             <div style={{flex:1}}>
-              {ls.notes.split('\n').filter(function(l){return l.trim();}).map(function(line,i){
+              {ls.notes.split('\n').filter(function(line){return line.trim();}).map(function(line,i){
                 return (
                   <div key={i} style={{display:'flex',gap:'4pt',fontSize:'9pt',color:'#333',lineHeight:1.7,marginBottom:'1pt'}}>
                     <span style={{color:'#c9a84c',flexShrink:0,fontWeight:700}}>•</span>
@@ -695,12 +695,7 @@ function TourCards({ listings, clientName, reportDate, bizName, agentName, agent
               })}
             </div>
           ) : (
-            <div style={{flex:1,display:'flex',flexDirection:'column',justifyContent:'space-around'}}>
-              <div style={{borderBottom:'0.3pt solid #e0e0e0'}} />
-              <div style={{borderBottom:'0.3pt solid #e0e0e0'}} />
-              <div style={{borderBottom:'0.3pt solid #e0e0e0'}} />
-              <div style={{borderBottom:'0.3pt solid #e0e0e0'}} />
-            </div>
+            <div style={{flex:1}} />
           )}
         </div>
       </div>
@@ -712,7 +707,8 @@ function TourCards({ listings, clientName, reportDate, bizName, agentName, agent
       {chunks.map((chunk, ci) => (
         <div key={ci} className="print-only"
           style={{pageBreakBefore:ci>0?'always':'auto',breakBefore:ci>0?'page':'auto',
-            pageBreakAfter:'always',breakAfter:'page',
+            pageBreakAfter:ci<chunks.length-1?'always':'auto',
+            breakAfter:ci<chunks.length-1?'page':'auto',
             width:'100%',height:'100vh',display:'flex',flexDirection:'column',boxSizing:'border-box'}}>
 
           {/* 페이지 헤더 */}
@@ -739,15 +735,15 @@ function TourCards({ listings, clientName, reportDate, bizName, agentName, agent
           </div>
 
           {/* 페이지 푸터 */}
-          <div style={{marginTop:'5pt',borderTop:'0.8pt solid #c9a84c',paddingTop:'4pt',
-            fontSize:'8pt',color:'#555',display:'flex',justifyContent:'space-between',alignItems:'center',flexShrink:0}}>
-            <span style={{display:'flex',alignItems:'center',gap:'6pt'}}>
-              {logoSrc&&<img src={logoSrc} style={{height:'14pt',objectFit:'contain'}} />}
-              {bizName&&<strong style={{color:'#0d1b2a'}}>{bizName}</strong>}
+          <div style={{marginTop:'6pt',borderTop:'1pt solid #c9a84c',paddingTop:'5pt',
+            display:'flex',justifyContent:'space-between',alignItems:'center',flexShrink:0}}>
+            <span style={{display:'flex',alignItems:'center',gap:'8pt'}}>
+              {logoSrc&&<img src={logoSrc} style={{height:'18pt',objectFit:'contain'}} />}
+              {bizName&&<strong style={{color:'#0d1b2a',fontSize:'11pt'}}>{bizName}</strong>}
             </span>
-            <span>
-              {agentName&&<strong style={{color:'#0d1b2a',marginRight:'6pt'}}>{agentName}</strong>}
-              {agentPhone&&<span>{agentPhone}</span>}
+            <span style={{display:'flex',alignItems:'center',gap:'10pt'}}>
+              {agentName&&<strong style={{color:'#0d1b2a',fontSize:'11pt'}}>{agentName}</strong>}
+              {agentPhone&&<span style={{fontSize:'11pt',color:'#555'}}>{agentPhone}</span>}
             </span>
           </div>
         </div>
