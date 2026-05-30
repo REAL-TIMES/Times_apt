@@ -1,5 +1,5 @@
 // ── TIMES 주거 매물 관리 v1.0.0 ──
-const APP_VERSION = 'v1.3.6';
+const APP_VERSION = 'v1.3.7';
 const { useState, useEffect, useRef } = React;
 
 // ── 상수 ──
@@ -965,7 +965,7 @@ function App() {
 
   const printCSS = view==='briefing'
     ? '@media print { @page { size:A4 landscape !important; margin:10mm 10mm 14mm; } .print-only { display:block !important; } .screen-only { display:none !important; } .no-print { display:none !important; } }'
-    : '@media print { @page { size:A4 portrait !important; margin:0mm !important; } .print-only { display:block !important; } .screen-only { display:none !important; } .no-print { display:none !important; } .tour-page { display:flex !important; flex-direction:column !important; width:210mm !important; height:297mm !important; padding:10mm !important; overflow:hidden !important; box-sizing:border-box !important; } }';
+    : '@media print { @page { size:A4 portrait !important; margin:0mm !important; } body,main { padding:0 !important; margin:0 !important; max-width:none !important; } .print-only { display:block !important; } .screen-only { display:none !important; } .no-print { display:none !important; } .tour-page { display:flex !important; flex-direction:column !important; width:210mm !important; height:297mm !important; padding:10mm !important; overflow:hidden !important; box-sizing:border-box !important; } }';
 
   const TABS = [
     {id:'list',     label:'📋 매물 목록'},
