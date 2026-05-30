@@ -1,5 +1,5 @@
 // ── TIMES 주거 매물 관리 v1.0.0 ──
-const APP_VERSION = 'v1.3.1';
+const APP_VERSION = 'v1.3.2';
 const { useState, useEffect, useRef } = React;
 
 // ── 상수 ──
@@ -701,30 +701,24 @@ function TourCards({ listings, clientName, reportDate, bizName, agentName, agent
 
   /* ── 인쇄 전용 페이지들 ── */
   var pages = chunks.map(function(chunk, ci) {
-    var isLast = ci === chunks.length - 1;
-    var pageStyle = {
-      display:'flex', flexDirection:'column', boxSizing:'border-box',
-      width:'210mm', height:'297mm', padding:'10mm',
-      pageBreakAfter: isLast ? 'avoid' : 'always',
-      breakAfter: isLast ? 'avoid' : 'page',
-      WebkitPrintColorAdjust:'exact', printColorAdjust:'exact',
-    };
     return (
-      <div key={ci} className="print-only" style={pageStyle}>
+      <div key={ci} className="tour-page print-only">
 
         {/* 헤더 */}
-        <div style={{borderBottom:'1.5pt solid #0d1b2a',paddingBottom:'6pt',marginBottom:'10pt',
+        <div style={{borderBottom:'1.5pt solid #0d1b2a',paddingBottom:'7pt',marginBottom:'12pt',
           display:'flex',justifyContent:'space-between',alignItems:'flex-end',flexShrink:0}}>
           <div>
-            <div style={{fontSize:'7pt',letterSpacing:'.18em',color:'#c9a84c',marginBottom:'5pt'}}>TIMES REAL ESTATE</div>
-            <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'22pt',fontWeight:600,color:'#0d1b2a',lineHeight:1}}>
-              {clientName||'투어 카드'}
-            </div>
-            {clientName&&(
-              <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'13pt',fontWeight:400,color:'#999',lineHeight:1,marginTop:'3pt'}}>
-                투어 카드
+            <div style={{fontSize:'7pt',letterSpacing:'.2em',color:'#c9a84c',marginBottom:'6pt'}}>TIMES REAL ESTATE</div>
+            <div style={{display:'flex',alignItems:'baseline',gap:'10pt'}}>
+              <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'22pt',fontWeight:600,color:'#0d1b2a',lineHeight:1}}>
+                {clientName||'투어 카드'}
               </div>
-            )}
+              {clientName&&(
+                <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'15pt',fontWeight:400,color:'#aaa',lineHeight:1}}>
+                  투어 카드
+                </div>
+              )}
+            </div>
           </div>
           <div style={{textAlign:'right',fontSize:'8pt',color:'#aaa',paddingBottom:'2pt'}}>
             {reportDate}&nbsp;·&nbsp;총 {sel.length}건
@@ -748,7 +742,7 @@ function TourCards({ listings, clientName, reportDate, bizName, agentName, agent
             {logoSrc&&<img src={logoSrc} style={{height:'18pt',objectFit:'contain'}} />}
             {bizName&&<strong style={{color:'#0d1b2a',fontSize:'11pt'}}>{bizName}</strong>}
           </span>
-          <span style={{position:'absolute',left:'50%',transform:'translateX(-50%)',fontSize:'9pt',color:'#aaa'}}>
+          <span style={{position:'absolute',left:'50%',transform:'translateX(-50%)',fontSize:'9pt',color:'#aaa',whiteSpace:'nowrap'}}>
             {ci+1} / {chunks.length}
           </span>
           <span style={{display:'flex',alignItems:'center',gap:'10pt',flex:1,justifyContent:'flex-end'}}>
@@ -966,7 +960,7 @@ function App() {
 
   const printCSS = view==='briefing'
     ? '@media print { @page { size:A4 landscape !important; margin:10mm 10mm 14mm; } .print-only { display:block !important; } .screen-only { display:none !important; } .no-print { display:none !important; } }'
-    : '@media print { @page { size:A4 portrait !important; margin:0 !important; } .print-only { display:block !important; } .screen-only { display:none !important; } .no-print { display:none !important; } }';
+    : '@media print { @page { size:A4 portrait !important; margin:10mm 10mm 10mm 10mm; } .print-only { display:flex !important; } .screen-only { display:none !important; } .no-print { display:none !important; } .tour-page { flex-direction:column; width:190mm; height:274mm; overflow:hidden; page-break-after:always; break-after:page; box-sizing:border-box; } .tour-page:last-of-type { page-break-after:avoid; break-after:avoid; } }';
 
   const TABS = [
     {id:'list',     label:'📋 매물 목록'},
