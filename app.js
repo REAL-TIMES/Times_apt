@@ -1,5 +1,5 @@
 // ── TIMES 주거 매물 관리 v1.0.0 ──
-const APP_VERSION = 'v1.2.4';
+const APP_VERSION = 'v1.2.5';
 const { useState, useEffect, useRef } = React;
 
 // ── 상수 ──
@@ -449,7 +449,7 @@ function BriefingSheet({ listings, clientName, reportDate, bizName, bizAddr, age
 
   const BD = '0.5pt solid #e0dcd4';
   const BDH = '2pt solid #0d1b2a';
-  const thS = { background:'#0d1b2a',color:'white',padding:'5pt 6pt',fontSize:'8pt',fontWeight:600,textAlign:'center',border:'0.5pt solid #0d1b2a',verticalAlign:'bottom',lineHeight:1.3 };
+  const thS = { background:'#0d1b2a',color:'white',padding:'5pt 6pt',fontSize:'8pt',fontWeight:600,textAlign:'center',border:'0.5pt solid #0d1b2a',verticalAlign:'top',lineHeight:1.3 };
   const labelS = { background:'#f5f2eb',padding:'4pt 6pt',fontSize:'7.5pt',fontWeight:600,color:'#555',border:BD,textAlign:'center',verticalAlign:'middle',whiteSpace:'nowrap' };
   const cellS = (i) => ({ padding:'4pt 6pt',fontSize:'8.5pt',textAlign:'center',border:BD,background:i%2===0?'white':'#fafaf8',verticalAlign:'middle' });
   const hiCellS = (i) => ({ padding:'4pt 6pt',fontSize:'9pt',fontWeight:700,textAlign:'center',border:BD,background:i%2===0?'#f0f7ff':'#e8f4fd',verticalAlign:'middle',color:'#1a5276' });
@@ -479,7 +479,7 @@ function BriefingSheet({ listings, clientName, reportDate, bizName, bizAddr, age
             </colgroup>
             <thead>
               <tr>
-                <th style={{...thS,background:'#0d1b2a',color:'#c9a84c',fontSize:'7pt'}}>항목</th>
+                <th style={{...thS,background:'#0d1b2a',color:'#c9a84c',fontSize:'7pt',verticalAlign:'middle'}}>항목</th>
                 {chunk.map((l,i)=>(
                   <th key={l.id} style={thS}>
                     <div style={{fontSize:'6.5pt',color:DEAL_COLOR[l.dealType]||'#c9a84c',marginBottom:'2pt',fontWeight:700}}>
@@ -488,7 +488,7 @@ function BriefingSheet({ listings, clientName, reportDate, bizName, bizAddr, age
                     <div style={{fontSize:'9.5pt',fontFamily:"'Cormorant Garamond',serif",fontWeight:700,lineHeight:1.2}}>
                       {l.complexName}
                     </div>
-                    {l.dong&&<div style={{fontSize:'7pt',color:'#c9a84c',marginTop:'1pt'}}>{l.dong}</div>}
+                    {l.dong&&<div style={{fontSize:'7pt',color:'#c9a84c',marginTop:'1pt'}}>{l.dong}동</div>}
                   </th>
                 ))}
               </tr>
@@ -532,7 +532,7 @@ function BriefingSheet({ listings, clientName, reportDate, bizName, bizAddr, age
               {/* 비고 */}
               {chunk.some(l=>l.notes)&&(
                 <tr><td style={{...labelS,borderTop:'1pt solid #ccc8c0'}}>비고</td>
-                  {chunk.map((l,i)=><td key={l.id} style={{...cellS(i),borderTop:'1pt solid #ccc8c0',fontSize:'7.5pt',textAlign:'left'}}>{l.notes||'—'}</td>)}</tr>
+                  {chunk.map((l,i)=><td key={l.id} style={{...cellS(i),borderTop:'1pt solid #ccc8c0',fontSize:'7.5pt',textAlign:l.notes?'left':'center'}}>{l.notes||'—'}</td>)}</tr>
               )}
             </tbody>
           </table>
