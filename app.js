@@ -1,5 +1,5 @@
 // ── TIMES 주거 매물 관리 v1.0.0 ──
-const APP_VERSION = 'v1.2.1';
+const APP_VERSION = 'v1.2.3';
 const { useState, useEffect, useRef } = React;
 
 // ── 상수 ──
@@ -599,7 +599,7 @@ function TourCards({ listings, clientName, reportDate, bizName, agentName, agent
     const isSale = ls.dealType==='sale';
     const num = '①②③④⑤⑥⑦⑧⑨⑩'[idx]||String(idx+1);
     return (
-      <div style={{border:'1pt solid #0d1b2a',padding:'10pt 12pt',height:'116mm',boxSizing:'border-box',display:'flex',flexDirection:'column',position:'relative',overflow:'hidden',WebkitPrintColorAdjust:'exact',printColorAdjust:'exact'}}>
+      <div style={{border:'1pt solid #0d1b2a',padding:'7pt 9pt',display:'flex',flexDirection:'column',position:'relative',overflow:'hidden',WebkitPrintColorAdjust:'exact',printColorAdjust:'exact'}}>
         {/* 카드 헤더 */}
         <div style={{borderBottom:'1.5pt solid #0d1b2a',paddingBottom:'6pt',marginBottom:'7pt',display:'flex',justifyContent:'space-between',alignItems:'flex-end'}}>
           <div>
@@ -678,14 +678,14 @@ function TourCards({ listings, clientName, reportDate, bizName, agentName, agent
         )}
 
         {/* 메모란 */}
-        <div style={{flex:1,border:'0.5pt dashed #ccc',padding:'4pt 6pt',marginTop:'auto'}}>
-          <div style={{fontSize:'6.5pt',color:'#aaa',marginBottom:'3pt'}}>✎ 메모 (옵션·리모델링·특이사항)</div>
+        <div style={{border:'0.5pt dashed #ccc',padding:'3pt 5pt',marginTop:'4pt',flexShrink:0}}>
+          <div style={{fontSize:'6pt',color:'#bbb',marginBottom:'2pt'}}>✎ 메모</div>
           {ls.notes ? (
-            <div style={{fontSize:'8pt',color:'#333',lineHeight:1.6}}>{ls.notes}</div>
+            <div style={{fontSize:'7.5pt',color:'#333',lineHeight:1.5}}>{ls.notes}</div>
           ) : (
-            <div style={{display:'flex',flexDirection:'column',gap:'6pt',marginTop:'3pt'}}>
-              <div style={{borderBottom:'0.3pt solid #ddd',height:'7pt'}} />
-              <div style={{borderBottom:'0.3pt solid #ddd',height:'7pt'}} />
+            <div style={{display:'flex',flexDirection:'column',gap:'5pt'}}>
+              <div style={{borderBottom:'0.3pt solid #e0e0e0',height:'6pt'}} />
+              <div style={{borderBottom:'0.3pt solid #e0e0e0',height:'6pt'}} />
             </div>
           )}
         </div>
@@ -697,30 +697,37 @@ function TourCards({ listings, clientName, reportDate, bizName, agentName, agent
     <>
       {chunks.map((chunk, ci) => (
         <div key={ci} className="print-only"
-          style={{pageBreakBefore:ci>0?'always':'auto',breakBefore:ci>0?'page':'auto'}}>
-          {/* 페이지 헤더 - 브리핑 시트와 동일 */}
-          <div style={{borderBottom:'1.5pt solid #0d1b2a',paddingBottom:'6pt',marginBottom:'8pt',display:'flex',justifyContent:'space-between',alignItems:'flex-end'}}>
+          style={{pageBreakBefore:ci>0?'always':'auto',breakBefore:ci>0?'page':'auto',
+            height:'277mm',display:'flex',flexDirection:'column',boxSizing:'border-box',overflow:'hidden'}}>
+
+          {/* 페이지 헤더 */}
+          <div style={{borderBottom:'1.5pt solid #0d1b2a',paddingBottom:'5pt',marginBottom:'6pt',
+            display:'flex',justifyContent:'space-between',alignItems:'flex-end',flexShrink:0}}>
             <div>
-              <div style={{fontSize:'7pt',letterSpacing:'.15em',color:'#c9a84c',marginBottom:'4pt'}}>TIMES REAL ESTATE</div>
-              <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'20pt',fontWeight:600,color:'#0d1b2a',lineHeight:1}}>
+              <div style={{fontSize:'7pt',letterSpacing:'.15em',color:'#c9a84c',marginBottom:'3pt'}}>TIMES REAL ESTATE</div>
+              <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'18pt',fontWeight:600,color:'#0d1b2a',lineHeight:1}}>
                 {clientName ? clientName+' 투어 카드' : '투어 카드'}
               </div>
             </div>
-            <div style={{textAlign:'right',fontSize:'8pt',color:'#aaa',paddingBottom:'2pt'}}>
+            <div style={{textAlign:'right',fontSize:'7.5pt',color:'#aaa',paddingBottom:'2pt'}}>
               {reportDate}&nbsp;·&nbsp;총 {sel.length}건
-              {chunks.length>1&&<span>&nbsp;·&nbsp;{ci+1}/{chunks.length} 페이지</span>}
+              {chunks.length>1&&<span>&nbsp;·&nbsp;{ci+1}/{chunks.length}</span>}
             </div>
           </div>
 
-          {/* 2×2 카드 그리드 */}
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'6pt'}}>
+          {/* 2×2 카드 그리드 — flex:1로 남은 공간 모두 사용 */}
+          <div style={{flex:1,display:'grid',gridTemplateColumns:'1fr 1fr',gridTemplateRows:'1fr 1fr',gap:'5pt',overflow:'hidden'}}>
             {chunk.map((l,li) => <Card key={l.id} ls={l} idx={globalIdx(ci,li)} />)}
+            {chunk.length<4&&Array.from({length:4-chunk.length}).map((_,ei)=>(
+              <div key={'e'+ei} style={{border:'0.5pt dashed #e0dcd4'}} />
+            ))}
           </div>
 
-          {/* 페이지 푸터 - 브리핑 시트와 동일 */}
-          <div style={{marginTop:'6pt',borderTop:'0.8pt solid #c9a84c',paddingTop:'5pt',fontSize:'7.5pt',color:'#555',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+          {/* 페이지 푸터 */}
+          <div style={{marginTop:'5pt',borderTop:'0.8pt solid #c9a84c',paddingTop:'4pt',
+            fontSize:'7.5pt',color:'#555',display:'flex',justifyContent:'space-between',alignItems:'center',flexShrink:0}}>
             <span style={{display:'flex',alignItems:'center',gap:'6pt'}}>
-              {logoSrc&&<img src={logoSrc} style={{height:'14pt',objectFit:'contain'}} />}
+              {logoSrc&&<img src={logoSrc} style={{height:'13pt',objectFit:'contain'}} />}
               {bizName&&<strong style={{color:'#0d1b2a'}}>{bizName}</strong>}
             </span>
             <span>
@@ -993,7 +1000,7 @@ function App() {
                 </select>
                 <button onClick={()=>{
                     const ids=new Set(filteredListings.map(l=>l.id));
-                    setListings(p=>p.map(x=>ids.has(x.id)?{...x,printSel:true}:x));
+                    setListings(p=>p.map(x=>({...x,printSel:ids.has(x.id)})));
                   }} style={{padding:'6px 14px',fontSize:'13px',background:'white',border:'1px solid #bbb',cursor:'pointer',fontFamily:'inherit'}}>전체 선택</button>
                 <button onClick={()=>{
                     const ids=new Set(filteredListings.map(l=>l.id));
