@@ -1,5 +1,5 @@
 // ── TIMES 주거 매물 관리 v1.0.0 ──
-const APP_VERSION = 'v1.4.1';
+const APP_VERSION = 'v1.4.2';
 const { useState, useEffect, useRef } = React;
 
 // ── 상수 ──
@@ -41,6 +41,19 @@ const fmt   = v => {
   if (a<=0) return '—';
   if (a>=10000) { const uk=Math.floor(a/10000), man=a%10000; return man>0?uk+'억 '+man.toLocaleString()+'만원':uk+'억원'; }
   return a.toLocaleString()+'만원';
+};
+const fmtShort = v => {
+  const a = Math.round(n(v));
+  if (a<=0) return '—';
+  if (a>=10000) {
+    const uk=Math.floor(a/10000), man=a%10000;
+    if (man===0) return uk+'억';
+    const decimal = Math.round(man/1000);
+    if (decimal===0) return uk+'억';
+    if (decimal===10) return (uk+1)+'억';
+    return uk+'.'+decimal+'억';
+  }
+  return a.toLocaleString()+'만';
 };
 const fmtPy = (price, py) => (!price||!py||n(py)===0)?'—': Math.round(n(price)/n(py)).toLocaleString()+'만원';
 const perPy = (price, py) => (!price||!py||n(py)===0)?null: Math.round(n(price)/n(py));
@@ -443,7 +456,7 @@ function BriefingSheet({ listings, clientName, reportDate, bizName, bizAddr, age
 
   const isSale = sel.some(l=>l.dealType==='sale');
 
-  const CHUNK = 7;
+  const CHUNK = 6;
   const chunks = [];
   for (let i=0; i<sel.length; i+=CHUNK) chunks.push(sel.slice(i,i+CHUNK));
 
@@ -472,54 +485,49 @@ function BriefingSheet({ listings, clientName, reportDate, bizName, bizAddr, age
             </div>
           </div>
 
-          <table style={{borderCollapse:'collapse',tableLayout:'fixed',width: chunk.length < 7 ? (60 + chunk.length*108)+'pt' : '100%'}}>
+          <table style={{borderCollapse:'collapse',tableLayout:'fixed',width:'100%'}}>
             <colgroup>
-              <col style={{width:'60pt'}} />
-              {chunk.map((_,i)=><col key={i} style={{width:'108pt'}} />)}
+              <col style={{width:'58pt'}} />
+              {chunk.map((_,i)=><col key={i} style={{width:Math.floor((780-58)/chunk.length)+'pt'}} />)}
             </colgroup>
             <thead>
               <tr>
                 <th style={{...thS,background:'#0d1b2a',color:'#c9a84c',fontSize:'9pt',verticalAlign:'middle'}}>항목</th>
                 {chunk.map((l,i)=>(
                   <th key={l.id} style={thS}>
-                    <div style={{fontSize:'9pt',color:DEAL_COLOR[l.dealType]||'#c9a84c',marginBottom:'3pt',fontWeight:700}}>
-                      {'①②③④⑤⑥⑦⑧⑨⑩'[i+(ci*CHUNK)]} {DEAL_LABEL[l.dealType]}
+                    <div style={{fontSize:'11pt',fontFamily:"'Noto Sans KR','Apple SD Gothic Neo',sans-serif",fontWeight:700,lineHeight:1.2,color:'#c9a84c'}}>
+                      {'①②③④⑤⑥⑦⑧⑨⑩'[i+(ci*CHUNK)]} {l.complexName}
                     </div>
-                    <div style={{fontSize:'11pt',fontFamily:"'Noto Sans KR','Apple SD Gothic Neo',sans-serif",fontWeight:700,lineHeight:1.2,color:'white'}}>
-                      {l.complexName}
-                    </div>
-                    {l.dong&&<div style={{fontSize:'9pt',color:'#c9a84c',marginTop:'2pt'}}>{l.dong}동</div>}
+                    {l.dong&&<div style={{fontSize:'9pt',color:'#aaa',marginTop:'2pt'}}>{l.dong}동</div>}
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {/* 거래유형 행 (전세/월세만) */}
-              {!isSale&&(
-                <tr>
-                  <td style={{...labelS,color:'#555'}}>거래유형</td>
-                  {chunk.map((l,i)=>(
-                    <td key={l.id} style={{...cellS(i),fontWeight:700,color:DEAL_COLOR[l.dealType]||'#888'}}>
-                      {DEAL_LABEL[l.dealType]||'—'}
-                    </td>
-                  ))}
-                </tr>
-              )}
+              {/* 거래유형 행 — 매매/전세/월세 모두 */}
+              <tr>
+                <td style={{...labelS}}>거래유형</td>
+                {chunk.map((l,i)=>(
+                  <td key={l.id} style={{...cellS(i),fontWeight:700,color:DEAL_COLOR[l.dealType]||'#888'}}>
+                    {DEAL_LABEL[l.dealType]||'—'}
+                  </td>
+                ))}
+              </tr>
               {/* 가격 행 */}
               {isSale&&chunk.some(l=>l.salePrice)&&(
-                <tr><td style={labelS}>매매가</td>{chunk.map((l,i)=><td key={l.id} style={hiCellS(i)}>{l.salePrice?fmt(l.salePrice):'—'}</td>)}</tr>
+                <tr><td style={labelS}>매매가</td>{chunk.map((l,i)=><td key={l.id} style={hiCellS(i)}>{l.salePrice?fmtShort(l.salePrice):'—'}</td>)}</tr>
               )}
               {!isSale&&chunk.some(l=>l.jeonsePrice)&&(
-                <tr><td style={labelS}>전세가</td>{chunk.map((l,i)=><td key={l.id} style={{...hiCellS(i),color:'#196f3d',background:i%2===0?'#f0fff4':'#e8faf0'}}>{l.jeonsePrice?fmt(l.jeonsePrice):'—'}</td>)}</tr>
+                <tr><td style={labelS}>전세가</td>{chunk.map((l,i)=><td key={l.id} style={{...hiCellS(i),color:'#196f3d',background:i%2===0?'#f0fff4':'#e8faf0'}}>{l.jeonsePrice?fmtShort(l.jeonsePrice):'—'}</td>)}</tr>
               )}
               {!isSale&&chunk.some(l=>l.deposit)&&(
-                <tr><td style={labelS}>보증금</td>{chunk.map((l,i)=><td key={l.id} style={cellS(i)}>{l.deposit?fmt(l.deposit):'—'}</td>)}</tr>
+                <tr><td style={labelS}>보증금</td>{chunk.map((l,i)=><td key={l.id} style={cellS(i)}>{l.deposit?fmtShort(l.deposit):'—'}</td>)}</tr>
               )}
               {!isSale&&chunk.some(l=>l.monthlyRent)&&(
-                <tr><td style={labelS}>월세</td>{chunk.map((l,i)=><td key={l.id} style={cellS(i)}>{l.monthlyRent?fmt(l.monthlyRent):'—'}</td>)}</tr>
+                <tr><td style={labelS}>월세</td>{chunk.map((l,i)=><td key={l.id} style={cellS(i)}>{l.monthlyRent?fmtShort(l.monthlyRent):'—'}</td>)}</tr>
               )}
               {chunk.some(l=>l.mgmtFee)&&(
-                <tr><td style={labelS}>관리비/월</td>{chunk.map((l,i)=><td key={l.id} style={cellS(i)}>{l.mgmtFee?fmt(l.mgmtFee):'—'}</td>)}</tr>
+                <tr><td style={labelS}>관리비/월</td>{chunk.map((l,i)=><td key={l.id} style={cellS(i)}>{l.mgmtFee?fmtShort(l.mgmtFee):'—'}</td>)}</tr>
               )}
               {/* 면적 */}
               <tr><td style={{...labelS,borderTop:'1pt solid #ccc8c0'}}>공급면적</td>{chunk.map((l,i)=><td key={l.id} style={{...cellS(i),borderTop:'1pt solid #ccc8c0'}}>{l.supplyPy?l.supplyPy+'평':'—'}</td>)}</tr>
