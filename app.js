@@ -1,5 +1,5 @@
 // ── TIMES 주거 매물 관리 v1.0.0 ──
-const APP_VERSION = 'v1.3.8';
+const APP_VERSION = 'v1.3.9';
 const { useState, useEffect, useRef } = React;
 
 // ── 상수 ──
@@ -382,7 +382,7 @@ function LCard({ ls, onEdit, onDelete, onToggle, onDragStart, onDragOver, onDrop
                 {DEAL_LABEL[ls.dealType]||ls.dealType}
               </span>
             </div>
-            {ls.dong && <span style={{fontSize:'11px',color:'#c9a84c',fontWeight:600}}>{ls.dong} </span>}
+            {ls.dong && <span style={{fontSize:'11px',color:'#c9a84c',fontWeight:600}}>{ls.dong}동 </span>}
             {ls.floor && <span style={{fontSize:'11px',color:'#888'}}>{ls.floor}{ls.totalFloor?'/'+ls.totalFloor+'층':'층'}</span>}
             {ls.address && <div style={{fontSize:'10px',color:'#aaa',marginTop:'2px'}}>{ls.address}</div>}
           </div>
@@ -562,7 +562,7 @@ function BriefingSheet({ listings, clientName, reportDate, bizName, bizAddr, age
                 <th key={l.id} style={{background:'#0d1b2a',color:'white',padding:'8px 10px',minWidth:'130px',textAlign:'center',borderBottom:'3px solid #c9a84c'}}>
                   <div style={{fontSize:'10px',color:DEAL_COLOR[l.dealType]||'#c9a84c',marginBottom:'2px'}}>{'①②③④⑤⑥⑦⑧⑨⑩'[i]} {DEAL_LABEL[l.dealType]}</div>
                   <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'14px',fontWeight:700}}>{l.complexName}</div>
-                  {l.dong&&<div style={{fontSize:'10px',color:'#c9a84c'}}>{l.dong}</div>}
+                  {l.dong&&<div style={{fontSize:'10px',color:'#c9a84c'}}>{l.dong}동</div>}
                 </th>
               ))}
             </tr>
@@ -611,7 +611,7 @@ function TourCards({ listings, clientName, reportDate, bizName, agentName, agent
             <div>
               <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'13pt',fontWeight:600,color:'#0d1b2a',lineHeight:1.2}}>
                 {ls.complexName}
-                {ls.dong&&<span style={{fontFamily:"Georgia,'Times New Roman',serif",fontSize:'11pt',color:'#c9a84c',marginLeft:'5pt',fontWeight:600}}>{ls.dong}동</span>}
+                {ls.dong&&<span style={{fontFamily:"'Noto Sans KR','Apple SD Gothic Neo',sans-serif",fontSize:'11pt',color:'#c9a84c',marginLeft:'5pt',fontWeight:600}}>{ls.dong}동</span>}
               </div>
               {ls.address&&<div style={{fontSize:'9pt',color:'#888',marginTop:'1pt'}}>{ls.address}</div>}
             </div>
