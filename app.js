@@ -1,5 +1,5 @@
 // ── TIMES 주거 매물 관리 v1.0.0 ──
-const APP_VERSION = 'v1.2.9';
+const APP_VERSION = 'v1.3.0';
 const { useState, useEffect, useRef } = React;
 
 // ── 상수 ──
@@ -610,7 +610,7 @@ function TourCards({ listings, clientName, reportDate, bizName, agentName, agent
               <div>
                 <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'13pt',fontWeight:600,color:'#0d1b2a',lineHeight:1.2}}>
                   {ls.complexName}
-                  {ls.dong&&<span style={{fontSize:'10pt',color:'#c9a84c',marginLeft:'4pt'}}>{ls.dong}</span>}
+                  {ls.dong&&<span style={{fontSize:'11pt',color:'#c9a84c',marginLeft:'5pt'}}>{ls.dong}동</span>}
                 </div>
                 {ls.address&&<div style={{fontSize:'9pt',color:'#888',marginTop:'1pt'}}>{ls.address}</div>}
               </div>
@@ -705,28 +705,29 @@ function TourCards({ listings, clientName, reportDate, bizName, agentName, agent
   return (
     <>
       {chunks.map((chunk, ci) => (
-        <div key={ci} className="print-only"
-          style={{pageBreakBefore:ci>0?'always':'auto',breakBefore:ci>0?'page':'auto',
-            pageBreakAfter:ci<chunks.length-1?'always':'auto',
-            breakAfter:ci<chunks.length-1?'page':'auto',
-            width:'100%',height:'100vh',display:'flex',flexDirection:'column',boxSizing:'border-box'}}>
+        <div key={ci} className="tour-page print-only"
+          style={{flexDirection:'column',boxSizing:'border-box'}}>
 
           {/* 페이지 헤더 */}
-          <div style={{borderBottom:'1.5pt solid #0d1b2a',paddingBottom:'5pt',marginBottom:'6pt',
+          <div style={{borderBottom:'1.5pt solid #0d1b2a',paddingBottom:'6pt',marginBottom:'10pt',
             display:'flex',justifyContent:'space-between',alignItems:'flex-end',flexShrink:0}}>
             <div>
-              <div style={{fontSize:'7pt',letterSpacing:'.15em',color:'#c9a84c',marginBottom:'3pt'}}>TIMES REAL ESTATE</div>
-              <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'18pt',fontWeight:600,color:'#0d1b2a',lineHeight:1}}>
-                {clientName ? clientName+' 투어 카드' : '투어 카드'}
+              <div style={{fontSize:'7pt',letterSpacing:'.18em',color:'#c9a84c',marginBottom:'4pt'}}>TIMES REAL ESTATE</div>
+              <div style={{display:'flex',alignItems:'baseline',gap:'8pt'}}>
+                <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'22pt',fontWeight:600,color:'#0d1b2a',lineHeight:1}}>
+                  {clientName||'투어 카드'}
+                </div>
+                {clientName&&<div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'14pt',fontWeight:400,color:'#888',lineHeight:1}}>
+                  투어 카드
+                </div>}
               </div>
             </div>
             <div style={{textAlign:'right',fontSize:'8pt',color:'#aaa',paddingBottom:'2pt'}}>
               {reportDate}&nbsp;·&nbsp;총 {sel.length}건
-              {chunks.length>1&&<span>&nbsp;·&nbsp;{ci+1}/{chunks.length}</span>}
             </div>
           </div>
 
-          {/* 2×2 카드 그리드 — flex:1로 남은 공간 모두 사용 */}
+          {/* 2×2 카드 그리드 */}
           <div style={{flex:1,display:'grid',gridTemplateColumns:'1fr 1fr',gridTemplateRows:'1fr 1fr',gap:'6pt',minHeight:0}}>
             {chunk.map((l,li) => <Card key={l.id} ls={l} idx={globalIdx(ci,li)} />)}
             {chunk.length<4&&Array.from({length:4-chunk.length}).map((_,ei)=>(
@@ -741,9 +742,11 @@ function TourCards({ listings, clientName, reportDate, bizName, agentName, agent
               {logoSrc&&<img src={logoSrc} style={{height:'18pt',objectFit:'contain'}} />}
               {bizName&&<strong style={{color:'#0d1b2a',fontSize:'11pt'}}>{bizName}</strong>}
             </span>
-            <span style={{display:'flex',alignItems:'center',gap:'10pt'}}>
+            <span style={{display:'flex',alignItems:'center',gap:'16pt'}}>
               {agentName&&<strong style={{color:'#0d1b2a',fontSize:'11pt'}}>{agentName}</strong>}
               {agentPhone&&<span style={{fontSize:'11pt',color:'#555'}}>{agentPhone}</span>}
+              {chunks.length>1&&<span style={{fontSize:'9pt',color:'#aaa'}}>{ci+1} / {chunks.length}</span>}
+              {chunks.length===1&&<span style={{fontSize:'9pt',color:'#aaa'}}>1 / 1</span>}
             </span>
           </div>
         </div>
@@ -953,7 +956,7 @@ function App() {
 
   const printCSS = view==='briefing'
     ? '@media print { @page { size:A4 landscape !important; margin:10mm 10mm 14mm; } .print-only { display:block !important; } .screen-only { display:none !important; } .no-print { display:none !important; } }'
-    : '@media print { @page { size:A4 portrait !important; margin:10mm; } .print-only { display:block !important; } .screen-only { display:none !important; } .no-print { display:none !important; } body,html { height:100%; } }';
+    : '@media print { @page { size:A4 portrait !important; margin:10mm; } .print-only { display:block !important; } .screen-only { display:none !important; } .no-print { display:none !important; } .tour-page { display:flex !important; width:190mm !important; height:277mm !important; page-break-after:always !important; break-after:page !important; overflow:hidden !important; box-sizing:border-box !important; } .tour-page:last-child { page-break-after:avoid !important; break-after:avoid !important; } }';
 
   const TABS = [
     {id:'list',     label:'📋 매물 목록'},
