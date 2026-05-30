@@ -1,5 +1,5 @@
 // ── TIMES 주거 매물 관리 v1.0.0 ──
-const APP_VERSION = 'v1.4.3';
+const APP_VERSION = 'v1.4.4';
 const { useState, useEffect, useRef } = React;
 
 // ── 상수 ──
@@ -454,8 +454,6 @@ function BriefingSheet({ listings, clientName, reportDate, bizName, bizAddr, age
   const sel = listings.filter(l=>l.printSel);
   if (!sel.length) return <div style={{textAlign:'center',padding:'60px',color:'#aaa'}}>매물 목록에서 출력할 매물을 체크하세요</div>;
 
-  const isSale = sel.some(l=>l.dealType==='sale');
-
   const CHUNK = 6;
   const chunks = [];
   for (let i=0; i<sel.length; i+=CHUNK) chunks.push(sel.slice(i,i+CHUNK));
@@ -513,17 +511,17 @@ function BriefingSheet({ listings, clientName, reportDate, bizName, bizAddr, age
                   </td>
                 ))}
               </tr>
-              {/* 가격 행 */}
-              {isSale&&chunk.some(l=>l.salePrice)&&(
+              {/* 가격 행 — 매매/전세/보증금/월세 각각 값 있는 매물이 하나라도 있으면 행 표시 */}
+              {chunk.some(l=>l.salePrice)&&(
                 <tr><td style={labelS}>매매가</td>{chunk.map((l,i)=><td key={l.id} style={hiCellS(i)}>{l.salePrice?fmtShort(l.salePrice):'—'}</td>)}</tr>
               )}
-              {!isSale&&chunk.some(l=>l.jeonsePrice)&&(
+              {chunk.some(l=>l.jeonsePrice)&&(
                 <tr><td style={labelS}>전세가</td>{chunk.map((l,i)=><td key={l.id} style={{...hiCellS(i),color:'#196f3d',background:i%2===0?'#f0fff4':'#e8faf0'}}>{l.jeonsePrice?fmtShort(l.jeonsePrice):'—'}</td>)}</tr>
               )}
-              {!isSale&&chunk.some(l=>l.deposit)&&(
+              {chunk.some(l=>l.deposit)&&(
                 <tr><td style={labelS}>보증금</td>{chunk.map((l,i)=><td key={l.id} style={cellS(i)}>{l.deposit?fmtShort(l.deposit):'—'}</td>)}</tr>
               )}
-              {!isSale&&chunk.some(l=>l.monthlyRent)&&(
+              {chunk.some(l=>l.monthlyRent)&&(
                 <tr><td style={labelS}>월세</td>{chunk.map((l,i)=><td key={l.id} style={cellS(i)}>{l.monthlyRent?fmtShort(l.monthlyRent):'—'}</td>)}</tr>
               )}
               {chunk.some(l=>l.mgmtFee)&&(
@@ -539,8 +537,8 @@ function BriefingSheet({ listings, clientName, reportDate, bizName, bizAddr, age
               {chunk.some(l=>l.moveIn)&&<tr><td style={labelS}>입주가능</td>{chunk.map((l,i)=><td key={l.id} style={cellS(i)}>{l.moveIn||'—'}</td>)}</tr>}
               {chunk.some(l=>l.approvalDate)&&<tr><td style={labelS}>사용승인</td>{chunk.map((l,i)=><td key={l.id} style={cellS(i)}>{l.approvalDate||'—'}</td>)}</tr>}
               {chunk.some(l=>l.parking)&&<tr><td style={labelS}>주차</td>{chunk.map((l,i)=><td key={l.id} style={cellS(i)}>{l.parking||'—'}</td>)}</tr>}
-              {/* 평당가 (매매만) */}
-              {isSale&&(
+              {/* 평당가 — 매매가 있는 매물이 하나라도 있으면 표시 */}
+              {chunk.some(l=>l.salePrice&&l.supplyPy)&&(
                 <>
                   <tr><td style={{...labelS,borderTop:'1pt solid #ccc8c0',color:'#1a5276'}}>공급평당가</td>
                     {chunk.map((l,i)=><td key={l.id} style={{...cellS(i),borderTop:'1pt solid #ccc8c0',color:'#1a5276',fontWeight:600}}>{fmtPy(l.salePrice,l.supplyPy)}</td>)}</tr>
@@ -587,13 +585,13 @@ function BriefingSheet({ listings, clientName, reportDate, bizName, bizAddr, age
             </tr>
           </thead>
           <tbody>
-            {isSale&&sel.some(l=>l.salePrice)&&<tr><td style={{padding:'6px 10px',background:'#f0f7ff',fontWeight:700,color:'#1a5276',textAlign:'center'}}>매매가</td>{sel.map((l,i)=><td key={l.id} style={{padding:'6px 10px',textAlign:'center',fontWeight:700,color:'#1a5276',borderBottom:'0.5px solid #f0ede6',background:i%2===0?'#f0f7ff':'#e8f4fd'}}>{l.salePrice?fmt(l.salePrice):'—'}</td>)}</tr>}
-            {!isSale&&sel.some(l=>l.jeonsePrice)&&<tr><td style={{padding:'6px 10px',background:'#f0fff4',fontWeight:700,color:'#196f3d',textAlign:'center'}}>전세가</td>{sel.map((l,i)=><td key={l.id} style={{padding:'6px 10px',textAlign:'center',fontWeight:700,color:'#196f3d',borderBottom:'0.5px solid #f0ede6',background:i%2===0?'#f0fff4':'#e8faf0'}}>{l.jeonsePrice?fmt(l.jeonsePrice):'—'}</td>)}</tr>}
-            {!isSale&&sel.some(l=>l.deposit)&&<tr><td style={{padding:'6px 10px',background:'#fafaf8',textAlign:'center'}}>보증금</td>{sel.map((l,i)=><td key={l.id} style={{padding:'6px 10px',textAlign:'center',borderBottom:'0.5px solid #f0ede6',background:i%2===0?'white':'#fafaf8'}}>{l.deposit?fmt(l.deposit):'—'}</td>)}</tr>}
+            {sel.some(l=>l.salePrice)&&<tr><td style={{padding:'6px 10px',background:'#f0f7ff',fontWeight:700,color:'#1a5276',textAlign:'center'}}>매매가</td>{sel.map((l,i)=><td key={l.id} style={{padding:'6px 10px',textAlign:'center',fontWeight:700,color:'#1a5276',borderBottom:'0.5px solid #f0ede6',background:i%2===0?'#f0f7ff':'#e8f4fd'}}>{l.salePrice?fmt(l.salePrice):'—'}</td>)}</tr>}
+            {sel.some(l=>l.jeonsePrice)&&<tr><td style={{padding:'6px 10px',background:'#f0fff4',fontWeight:700,color:'#196f3d',textAlign:'center'}}>전세가</td>{sel.map((l,i)=><td key={l.id} style={{padding:'6px 10px',textAlign:'center',fontWeight:700,color:'#196f3d',borderBottom:'0.5px solid #f0ede6',background:i%2===0?'#f0fff4':'#e8faf0'}}>{l.jeonsePrice?fmt(l.jeonsePrice):'—'}</td>)}</tr>}
+            {sel.some(l=>l.deposit)&&<tr><td style={{padding:'6px 10px',background:'#fafaf8',textAlign:'center'}}>보증금</td>{sel.map((l,i)=><td key={l.id} style={{padding:'6px 10px',textAlign:'center',borderBottom:'0.5px solid #f0ede6',background:i%2===0?'white':'#fafaf8'}}>{l.deposit?fmt(l.deposit):'—'}</td>)}</tr>}
             {sel.some(l=>l.mgmtFee)&&<tr><td style={{padding:'6px 10px',background:'#fafaf8',textAlign:'center'}}>관리비</td>{sel.map((l,i)=><td key={l.id} style={{padding:'6px 10px',textAlign:'center',borderBottom:'0.5px solid #f0ede6',background:i%2===0?'white':'#fafaf8'}}>{l.mgmtFee?fmt(l.mgmtFee):'—'}</td>)}</tr>}
             <tr><td style={{padding:'6px 10px',background:'#fafaf8',textAlign:'center'}}>공급/전용</td>{sel.map((l,i)=><td key={l.id} style={{padding:'6px 10px',textAlign:'center',borderBottom:'0.5px solid #f0ede6',background:i%2===0?'white':'#fafaf8'}}>{(l.supplyPy||'—')+'/'+(l.exclusivePy||'—')+'평'}</td>)}</tr>
             <tr><td style={{padding:'6px 10px',background:'#fafaf8',textAlign:'center'}}>층/방/향</td>{sel.map((l,i)=><td key={l.id} style={{padding:'6px 10px',textAlign:'center',borderBottom:'0.5px solid #f0ede6',background:i%2===0?'white':'#fafaf8'}}>{(l.floor||'—')+'층 '+(l.rooms||'—')+'방 '+(l.direction||'—')}</td>)}</tr>
-            {isSale&&<tr><td style={{padding:'6px 10px',background:'#e8f4fd',color:'#1a5276',fontWeight:700,textAlign:'center'}}>공급평당가</td>{sel.map((l,i)=><td key={l.id} style={{padding:'6px 10px',textAlign:'center',color:'#1a5276',fontWeight:600,borderBottom:'0.5px solid #f0ede6',background:i%2===0?'#f0f7ff':'#e8f4fd'}}>{fmtPy(l.salePrice,l.supplyPy)}</td>)}</tr>}
+            {sel.some(l=>l.salePrice&&l.supplyPy)&&<tr><td style={{padding:'6px 10px',background:'#e8f4fd',color:'#1a5276',fontWeight:700,textAlign:'center'}}>공급평당가</td>{sel.map((l,i)=><td key={l.id} style={{padding:'6px 10px',textAlign:'center',color:'#1a5276',fontWeight:600,borderBottom:'0.5px solid #f0ede6',background:i%2===0?'#f0f7ff':'#e8f4fd'}}>{fmtPy(l.salePrice,l.supplyPy)}</td>)}</tr>}
           </tbody>
         </table>
       </div>
