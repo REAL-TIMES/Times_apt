@@ -1,5 +1,5 @@
 // ── TIMES 주거 매물 관리 v1.0.0 ──
-const APP_VERSION = 'v1.4.4';
+const APP_VERSION = 'v1.4.5';
 const { useState, useEffect, useRef } = React;
 
 // ── 상수 ──
@@ -124,7 +124,7 @@ function NaverParseModal({ onParsed, onClose }) {
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'16px',borderBottom:'2px solid #0d1b2a',paddingBottom:'12px'}}>
           <div>
             <div style={{fontSize:'8px',letterSpacing:'.2em',color:'#c9a84c',marginBottom:'4px'}}>NAVER LISTING IMPORT</div>
-            <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'20px',fontWeight:600,color:'#0d1b2a'}}>네이버 매물 자동 입력</div>
+            <div style={{fontFamily:"'Noto Sans KR','Apple SD Gothic Neo',sans-serif",fontSize:'20px',fontWeight:600,color:'#0d1b2a'}}>네이버 매물 자동 입력</div>
             <div style={{fontSize:'11px',color:'#888',marginTop:'3px'}}>네이버 부동산 매물 텍스트를 붙여넣으세요</div>
           </div>
           <button onClick={onClose} style={{background:'none',border:'none',cursor:'pointer',fontSize:'20px',color:'#888'}}>×</button>
@@ -170,8 +170,8 @@ function SBSetup({ onConnect }) {
   return (
     <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'#f7f4ef'}}>
       <div style={{background:'white',border:'1px solid #0d1b2a',padding:'32px',width:'100%',maxWidth:'440px'}}>
-        <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'9px',letterSpacing:'.25em',color:'#c9a84c',marginBottom:'6px'}}>TIMES REAL ESTATE</div>
-        <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'24px',fontWeight:600,color:'#0d1b2a',marginBottom:'4px'}}>주거 매물 관리</div>
+        <div style={{fontFamily:"'Noto Sans KR','Apple SD Gothic Neo',sans-serif",fontSize:'9px',letterSpacing:'.25em',color:'#c9a84c',marginBottom:'6px'}}>TIMES REAL ESTATE</div>
+        <div style={{fontFamily:"'Noto Sans KR','Apple SD Gothic Neo',sans-serif",fontSize:'24px',fontWeight:600,color:'#0d1b2a',marginBottom:'4px'}}>주거 매물 관리</div>
         <div style={{fontSize:'11px',color:'#888',marginBottom:'24px'}}>Supabase 프로젝트에 연결하세요</div>
         <div style={{marginBottom:'12px'}}>
           <div style={{fontSize:'10px',color:'#888',marginBottom:'3px'}}>Supabase Project URL</div>
@@ -266,7 +266,7 @@ function ListingForm({ init, onSave, onClose }) {
     <div style={{position:'fixed',inset:0,background:'rgba(13,27,42,0.75)',zIndex:1000,display:'flex',alignItems:'center',justifyContent:'center',padding:'16px'}}>
       <div style={{background:'white',width:'100%',maxWidth:'720px',maxHeight:'90vh',overflowY:'auto',padding:'24px'}}>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'18px',borderBottom:'2px solid #0d1b2a',paddingBottom:'10px'}}>
-          <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'20px',fontWeight:600,color:'#0d1b2a'}}>
+          <div style={{fontFamily:"'Noto Sans KR','Apple SD Gothic Neo',sans-serif",fontSize:'20px',fontWeight:600,color:'#0d1b2a'}}>
             {init?'매물 수정':'새 매물 등록'}
           </div>
           <button onClick={onClose} style={{background:'none',border:'none',cursor:'pointer',fontSize:'18px',color:'#888'}}>×</button>
@@ -382,66 +382,66 @@ function LCard({ ls, onEdit, onDelete, onToggle, onDragStart, onDragOver, onDrop
   return (
     <div draggable onDragStart={onDragStart} onDragOver={e=>{e.preventDefault();onDragOver();}} onDrop={onDrop}
       style={{background:'white',border:'1px solid #e0dcd4',position:'relative',overflow:'hidden',
-        opacity:isDragging?0.4:1,cursor:'grab',transition:'opacity .15s'}}>
+        opacity:isDragging?0.4:1,cursor:'grab',transition:'opacity .15s',fontFamily:"'Noto Sans KR','Apple SD Gothic Neo',sans-serif"}}>
       <div style={{position:'absolute',left:0,top:0,bottom:0,width:'3px',background:ls.printSel?DEAL_COLOR[ls.dealType]||'#c9a84c':'#e0dcd4'}} />
-      <div style={{padding:'12px 12px 8px 15px'}}>
-        <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'6px'}}>
+      <div style={{padding:'14px 14px 10px 17px'}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'8px'}}>
           <div style={{flex:1,minWidth:0}}>
-            <div style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'2px'}}>
-              <span style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'15px',fontWeight:600,color:'#0d1b2a'}}>
+            <div style={{display:'flex',alignItems:'center',gap:'7px',marginBottom:'3px'}}>
+              <span style={{fontSize:'17px',fontWeight:700,color:'#0d1b2a'}}>
                 {ls.complexName||'(단지명 없음)'}
               </span>
-              <span style={{fontSize:'10px',fontWeight:700,color:'white',background:DEAL_COLOR[ls.dealType]||'#888',padding:'1px 6px',flexShrink:0}}>
+              <span style={{fontSize:'12px',fontWeight:700,color:'white',background:DEAL_COLOR[ls.dealType]||'#888',padding:'2px 7px',flexShrink:0}}>
                 {DEAL_LABEL[ls.dealType]||ls.dealType}
               </span>
             </div>
-            {ls.dong && <span style={{fontSize:'11px',color:'#c9a84c',fontWeight:600}}>{ls.dong}동 </span>}
-            {ls.floor && <span style={{fontSize:'11px',color:'#888'}}>{ls.floor}{ls.totalFloor?'/'+ls.totalFloor+'층':'층'}</span>}
-            {ls.address && <div style={{fontSize:'10px',color:'#aaa',marginTop:'2px'}}>{ls.address}</div>}
+            {ls.dong && <span style={{fontSize:'13px',color:'#c9a84c',fontWeight:600}}>{ls.dong}동 </span>}
+            {ls.floor && <span style={{fontSize:'13px',color:'#888'}}>{ls.floor}{ls.totalFloor?'/'+ls.totalFloor+'층':'층'}</span>}
+            {ls.address && <div style={{fontSize:'12px',color:'#aaa',marginTop:'3px'}}>{ls.address}</div>}
           </div>
           <input type="checkbox" checked={ls.printSel} onChange={onToggle}
             style={{cursor:'pointer',marginLeft:'8px',flexShrink:0}} />
         </div>
 
         {/* 가격 */}
-        <div style={{background:'#f7f4ef',padding:'6px 8px',marginBottom:'6px'}}>
+        <div style={{background:'#f7f4ef',padding:'7px 10px',marginBottom:'7px'}}>
           {isSale && ls.salePrice && <div style={{display:'flex',justifyContent:'space-between'}}>
-            <span style={{fontSize:'11px',color:'#888'}}>매매가</span>
-            <span style={{fontSize:'13px',fontWeight:700,color:'#1a5276'}}>{fmt(ls.salePrice)}</span>
+            <span style={{fontSize:'13px',color:'#888'}}>매매가</span>
+            <span style={{fontSize:'15px',fontWeight:700,color:'#1a5276'}}>{fmt(ls.salePrice)}</span>
           </div>}
           {!isSale && ls.jeonsePrice && <div style={{display:'flex',justifyContent:'space-between'}}>
-            <span style={{fontSize:'11px',color:'#888'}}>전세가</span>
-            <span style={{fontSize:'13px',fontWeight:700,color:'#196f3d'}}>{fmt(ls.jeonsePrice)}</span>
+            <span style={{fontSize:'13px',color:'#888'}}>전세가</span>
+            <span style={{fontSize:'15px',fontWeight:700,color:'#196f3d'}}>{fmt(ls.jeonsePrice)}</span>
           </div>}
           {!isSale && (ls.deposit||ls.monthlyRent) && <div style={{display:'flex',justifyContent:'space-between'}}>
-            <span style={{fontSize:'11px',color:'#888'}}>보증/월세</span>
-            <span style={{fontSize:'13px',fontWeight:700,color:'#7d6608'}}>{fmt(ls.deposit)} / {fmt(ls.monthlyRent)}</span>
+            <span style={{fontSize:'13px',color:'#888'}}>보증/월세</span>
+            <span style={{fontSize:'15px',fontWeight:700,color:'#7d6608'}}>{fmt(ls.deposit)} / {fmt(ls.monthlyRent)}</span>
           </div>}
-          {ls.mgmtFee && <div style={{display:'flex',justifyContent:'space-between',borderTop:'1px solid #ede9e1',marginTop:'3px',paddingTop:'3px'}}>
-            <span style={{fontSize:'10px',color:'#aaa'}}>관리비</span>
-            <span style={{fontSize:'11px',color:'#555'}}>{fmt(ls.mgmtFee)}/월</span>
+          {ls.mgmtFee && <div style={{display:'flex',justifyContent:'space-between',borderTop:'1px solid #ede9e1',marginTop:'4px',paddingTop:'4px'}}>
+            <span style={{fontSize:'12px',color:'#aaa'}}>관리비</span>
+            <span style={{fontSize:'13px',color:'#555'}}>{fmt(ls.mgmtFee)}/월</span>
           </div>}
         </div>
 
         {/* 면적/상세 */}
-        <div style={{display:'flex',gap:'12px',fontSize:'11px',color:'#666',flexWrap:'wrap'}}>
+        <div style={{display:'flex',gap:'12px',fontSize:'13px',color:'#666',flexWrap:'wrap'}}>
           {ls.supplyPy && <span>공급 <strong>{ls.supplyPy}평</strong></span>}
           {ls.exclusivePy && <span>전용 <strong>{ls.exclusivePy}평</strong></span>}
           {ls.rooms && <span>방 <strong>{ls.rooms}</strong></span>}
           {ls.direction && <span><strong>{ls.direction}</strong></span>}
         </div>
         {isSale && ls.salePrice && ls.supplyPy && (
-          <div style={{marginTop:'4px',fontSize:'10px',color:'#1a5276'}}>
+          <div style={{marginTop:'5px',fontSize:'12px',color:'#1a5276'}}>
             공급평당 {fmtPy(ls.salePrice, ls.supplyPy)}
             {ls.exclusivePy && ' · 전용평당 '+fmtPy(ls.salePrice, ls.exclusivePy)}
           </div>
         )}
-        {ls.notes && <div style={{marginTop:'4px',fontSize:'10px',color:'#2471a3',lineHeight:1.4}}>{ls.notes.slice(0,50)}{ls.notes.length>50?'…':''}</div>}
+        {ls.notes && <div style={{marginTop:'5px',fontSize:'12px',color:'#2471a3',lineHeight:1.5}}>{ls.notes.slice(0,50)}{ls.notes.length>50?'…':''}</div>}
       </div>
 
-      <div style={{borderTop:'1px solid #f0ede6',padding:'5px 12px',display:'flex',gap:'6px',justifyContent:'flex-end',background:'#fafaf8'}}>
-        <button onClick={onEdit} style={{fontSize:'10px',padding:'3px 10px',background:'none',border:'1px solid #c9a84c',color:'#c9a84c',cursor:'pointer'}}>편집</button>
-        <button onClick={onDelete} style={{fontSize:'10px',padding:'3px 10px',background:'none',border:'1px solid #ddd',color:'#888',cursor:'pointer'}}>삭제</button>
+      <div style={{borderTop:'1px solid #f0ede6',padding:'6px 14px',display:'flex',gap:'6px',justifyContent:'flex-end',background:'#fafaf8'}}>
+        <button onClick={onEdit} style={{fontSize:'12px',padding:'4px 12px',background:'none',border:'1px solid #c9a84c',color:'#c9a84c',cursor:'pointer'}}>편집</button>
+        <button onClick={onDelete} style={{fontSize:'12px',padding:'4px 12px',background:'none',border:'1px solid #ddd',color:'#888',cursor:'pointer'}}>삭제</button>
       </div>
     </div>
   );
@@ -578,7 +578,7 @@ function BriefingSheet({ listings, clientName, reportDate, bizName, bizAddr, age
               {sel.map((l,i)=>(
                 <th key={l.id} style={{background:'#0d1b2a',color:'white',padding:'8px 10px',minWidth:'130px',textAlign:'center',borderBottom:'3px solid #c9a84c'}}>
                   <div style={{fontSize:'10px',color:DEAL_COLOR[l.dealType]||'#c9a84c',marginBottom:'2px'}}>{'①②③④⑤⑥⑦⑧⑨⑩'[i]} {DEAL_LABEL[l.dealType]}</div>
-                  <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'14px',fontWeight:700}}>{l.complexName}</div>
+                  <div style={{fontFamily:"'Noto Sans KR','Apple SD Gothic Neo',sans-serif",fontSize:'14px',fontWeight:700}}>{l.complexName}</div>
                   {l.dong&&<div style={{fontSize:'10px',color:'#c9a84c'}}>{l.dong}동</div>}
                 </th>
               ))}
@@ -622,11 +622,11 @@ function TourCards({ listings, clientName, reportDate, bizName, agentName, agent
         {/* 카드 헤더 */}
         <div style={{borderBottom:'1.5pt solid #0d1b2a',paddingBottom:'6pt',marginBottom:'8pt',display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
           <div style={{display:'flex',alignItems:'flex-start',gap:'6pt'}}>
-            <span style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'20pt',fontWeight:700,color:'#0d1b2a',lineHeight:1,flexShrink:0}}>
+            <span style={{fontFamily:"'Noto Sans KR','Apple SD Gothic Neo',sans-serif",fontSize:'20pt',fontWeight:700,color:'#0d1b2a',lineHeight:1,flexShrink:0}}>
               {num}
             </span>
             <div>
-              <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'13pt',fontWeight:600,color:'#0d1b2a',lineHeight:1.2}}>
+              <div style={{fontFamily:"'Noto Sans KR','Apple SD Gothic Neo',sans-serif",fontSize:'13pt',fontWeight:600,color:'#0d1b2a',lineHeight:1.2}}>
                 {ls.complexName}
                 {ls.dong&&<span style={{fontFamily:"'Noto Sans KR','Apple SD Gothic Neo',sans-serif",fontSize:'11pt',color:'#c9a84c',marginLeft:'5pt',fontWeight:600}}>{ls.dong}동</span>}
               </div>
@@ -727,11 +727,11 @@ function TourCards({ listings, clientName, reportDate, bizName, agentName, agent
           <div>
             <div style={{fontSize:'7pt',letterSpacing:'.2em',color:'#c9a84c',marginBottom:'6pt'}}>TIMES REAL ESTATE</div>
             <div style={{display:'flex',alignItems:'baseline',gap:'10pt'}}>
-              <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'22pt',fontWeight:600,color:'#0d1b2a',lineHeight:1}}>
+              <div style={{fontFamily:"'Noto Sans KR','Apple SD Gothic Neo',sans-serif",fontSize:'22pt',fontWeight:600,color:'#0d1b2a',lineHeight:1}}>
                 {clientName||'투어 카드'}
               </div>
               {clientName&&(
-                <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'15pt',fontWeight:400,color:'#aaa',lineHeight:1}}>
+                <div style={{fontFamily:"'Noto Sans KR','Apple SD Gothic Neo',sans-serif",fontSize:'15pt',fontWeight:400,color:'#aaa',lineHeight:1}}>
                   투어 카드
                 </div>
               )}
@@ -781,9 +781,9 @@ function TourCards({ listings, clientName, reportDate, bizName, agentName, agent
             <div key={l.id} style={{border:'1px solid #e0dcd4',padding:'14px',background:'white'}}>
               <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8px',borderBottom:'2px solid #0d1b2a',paddingBottom:'8px'}}>
                 <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
-                  <span style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'22px',fontWeight:700,color:'#c9a84c'}}>{'①②③④⑤⑥⑦⑧⑨⑩'[i]||i+1}</span>
+                  <span style={{fontFamily:"'Noto Sans KR','Apple SD Gothic Neo',sans-serif",fontSize:'22px',fontWeight:700,color:'#c9a84c'}}>{'①②③④⑤⑥⑦⑧⑨⑩'[i]||i+1}</span>
                   <div>
-                    <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'16px',fontWeight:600,color:'#0d1b2a'}}>{l.complexName}</div>
+                    <div style={{fontFamily:"'Noto Sans KR','Apple SD Gothic Neo',sans-serif",fontSize:'16px',fontWeight:600,color:'#0d1b2a'}}>{l.complexName}</div>
                     {l.dong&&<div style={{fontSize:'11px',color:'#c9a84c'}}>{l.dong}동</div>}
                   </div>
                 </div>
@@ -823,7 +823,7 @@ function ConfirmModal({ message, subMessage, onConfirm, onCancel, busy }) {
   return (
     <div style={{position:'fixed',inset:0,background:'rgba(13,27,42,0.7)',zIndex:2000,display:'flex',alignItems:'center',justifyContent:'center',padding:'20px'}}>
       <div style={{background:'white',width:'100%',maxWidth:'360px',padding:'28px 24px'}}>
-        <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'20px',fontWeight:600,color:'#0d1b2a',marginBottom:'10px'}}>삭제 확인</div>
+        <div style={{fontFamily:"'Noto Sans KR','Apple SD Gothic Neo',sans-serif",fontSize:'20px',fontWeight:600,color:'#0d1b2a',marginBottom:'10px'}}>삭제 확인</div>
         <div style={{fontSize:'13px',color:'#333',marginBottom:'6px',lineHeight:1.6}}>{message}</div>
         {subMessage&&<div style={{fontSize:'11px',color:'#c0392b',background:'#fff5f4',padding:'8px 10px',marginBottom:'4px'}}>{subMessage}</div>}
         <div style={{display:'flex',gap:'8px',justifyContent:'flex-end',marginTop:'20px'}}>
@@ -981,7 +981,7 @@ function App() {
   }
 
   const printCSS = view==='briefing'
-    ? '@media print { @page { size:A4 landscape !important; margin:10mm 10mm 14mm; } .print-only { display:block !important; } .screen-only { display:none !important; } .no-print { display:none !important; } }'
+    ? '@media print { @page { size:A4 landscape !important; margin:10mm 10mm 14mm; } body,main { padding:0 !important; margin:0 !important; max-width:none !important; } .print-only { display:block !important; } .screen-only { display:none !important; } .no-print { display:none !important; } }'
     : '@media print { @page { size:A4 portrait !important; margin:0mm !important; } body,main { padding:0 !important; margin:0 !important; max-width:none !important; } .print-only { display:block !important; } .screen-only { display:none !important; } .no-print { display:none !important; } .tour-page { display:flex !important; flex-direction:column !important; width:210mm !important; height:297mm !important; padding:10mm !important; overflow:hidden !important; box-sizing:border-box !important; } }';
 
   const TABS = [
@@ -1000,7 +1000,7 @@ function App() {
         <div>
           <div style={{fontSize:'10px',letterSpacing:'.22em',color:'#c9a84c',marginBottom:'2px'}}>TIMES REAL ESTATE</div>
           <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
-            <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'22px',color:'white',fontWeight:500,lineHeight:1}}>주거 매물 관리</div>
+            <div style={{fontFamily:"'Noto Sans KR','Apple SD Gothic Neo',sans-serif",fontSize:'22px',color:'white',fontWeight:500,lineHeight:1}}>주거 매물 관리</div>
             <span style={{fontSize:'12px',color:'#0d1b2a',background:'#c9a84c',padding:'2px 8px',fontWeight:700,borderRadius:'2px'}}>{APP_VERSION}</span>
           </div>
         </div>
@@ -1077,7 +1077,7 @@ function App() {
           <>
             {filteredListings.length===0?(
               <div style={{textAlign:'center',padding:'80px 0',color:'#bbb'}}>
-                <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'24px',marginBottom:'10px',color:'#c9a84c'}}>
+                <div style={{fontFamily:"'Noto Sans KR','Apple SD Gothic Neo',sans-serif",fontSize:'24px',marginBottom:'10px',color:'#c9a84c'}}>
                   {listings.length===0?'등록된 매물이 없습니다':'검색 결과가 없습니다'}
                 </div>
                 <div style={{fontSize:'12px',marginBottom:'20px'}}>+ 새 매물 등록 버튼을 눌러 매물을 추가하세요</div>
