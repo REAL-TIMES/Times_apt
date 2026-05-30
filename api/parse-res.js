@@ -1,4 +1,4 @@
-// api/parse-res.js — 네이버 주거 매물 텍스트 파싱 (Claude AI)
+// api/parse-res.js — 네이버 주거 매물 텍스트 파싱 v1.1.0
 export default async function handler(req, res) {
   if (req.method !== 'POST') { res.status(405).end(); return; }
   const { text } = req.body;
@@ -12,31 +12,36 @@ export default async function handler(req, res) {
 ${text.slice(0, 4000)}
 
 추출할 필드 (없으면 null):
-- complexName: 단지명/건물명 (예: "래미안원베일리")
-- dong: 동 (예: "106")
+- complexName: 단지명/건물명
+- dong: 동 (숫자만, 예: "106")
 - address: 주소
+- propType: "apt"(아파트), "villa"(빌라/다세대/연립주택), "officetel"(오피스텔) - 텍스트의 건물 종류로 자동 판단
 - dealType: "sale"(매매), "jeonse"(전세), "monthly"(월세/반전세), "rent"(렌트)
 - salePrice: 매매가 만원 숫자 (예: 120000)
 - jeonsePrice: 전세가 만원 숫자 (예: 166560)
 - deposit: 보증금 만원 숫자 (월세/반전세일 때)
 - monthlyRent: 월세 만원 숫자
 - mgmtFee: 관리비 만원 숫자 (예: 25)
-- supplyM2: 공급면적 ㎡ 숫자 (예: 80.63)
-- exclusiveM2: 전용면적 ㎡ 숫자 (예: 59.96)
+- supplyM2: 공급면적 m2 숫자 (예: 80.63)
+- exclusiveM2: 전용면적 m2 숫자 (예: 59.96)
 - floor: 해당층 (예: "중", "15", "고", "저")
 - totalFloor: 총층 숫자
 - rooms: 방수 숫자
 - bathrooms: 욕실수 숫자
-- direction: 향 (예: "남향", "남동향")
+- direction: 향 (예: "남향")
 - moveIn: 입주가능일 (예: "즉시입주", "2026년 10월 30일")
-- approvalDate: 사용승인일 (예: "2021.11.24")
+- approvalDate: 사용승인일 (예: "2021.11.24") - 텍스트에서 사용승인일/준공일 추출
 - parking: 주차 (예: "6대")
-- elevator: 엘리베이터 (예: "1대", "있음")
-- heating: 난방 (예: "개별난방 / 도시가스")
+- elevator: 엘리베이터 (예: "1대")
+- heating: 난방 (예: "개별난방/도시가스")
 - units: 세대수 숫자
 - notes: 매물 제목/특이사항
 
-중요: 면적은 반드시 ㎡로 추출. 반전세는 dealType="monthly"에 deposit+monthlyRent 분리.
+중요:
+- 면적은 반드시 m2로 추출 (평 계산은 자동)
+- 반전세는 dealType="monthly"에 deposit+monthlyRent로 분리
+- propType: 아파트→apt, 빌라/다세대/연립→villa, 오피스텔→officetel
+- approvalDate: "사용승인일", "준공", "건축" 관련 날짜 추출
 JSON만 반환, 마크다운 없이.`;
 
   try {
@@ -58,11 +63,9 @@ JSON만 반환, 마크다운 없이.`;
     const raw = data.content[0].text.trim();
     const clean = raw.replace(/^```json\s*/,'').replace(/^```\s*/,'').replace(/```\s*$/,'').trim();
     const parsed = JSON.parse(clean);
-    // ㎡ → 평 자동 환산
     const PY = 3.30579;
     if (parsed.supplyM2) parsed.supplyPy = String(+(parseFloat(parsed.supplyM2)/PY).toFixed(2));
     if (parsed.exclusiveM2) parsed.exclusivePy = String(+(parseFloat(parsed.exclusiveM2)/PY).toFixed(2));
-    // 숫자 필드 → 문자열 변환
     ['salePrice','jeonsePrice','deposit','monthlyRent','mgmtFee','totalFloor','rooms','bathrooms','units'].forEach(k => {
       if (parsed[k] !== null && parsed[k] !== undefined) parsed[k] = String(parsed[k]);
     });
