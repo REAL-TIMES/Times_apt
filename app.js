@@ -1,5 +1,5 @@
 // ── TIMES 주거 매물 관리 v1.0.0 ──
-const APP_VERSION = 'v1.3.0';
+const APP_VERSION = 'v1.3.1';
 const { useState, useEffect, useRef } = React;
 
 // ── 상수 ──
@@ -586,37 +586,37 @@ function BriefingSheet({ listings, clientName, reportDate, bizName, bizAddr, age
 // ── 투어 카드 (A4 세로, 4장/페이지) ──
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function TourCards({ listings, clientName, reportDate, bizName, agentName, agentPhone, logoSrc }) {
-  const sel = listings.filter(l=>l.printSel);
+  var sel = listings.filter(function(l){return l.printSel;});
   if (!sel.length) return <div style={{textAlign:'center',padding:'60px',color:'#aaa'}}>매물 목록에서 출력할 매물을 체크하세요</div>;
 
-  const CHUNK = 4;
-  const chunks = [];
-  for (let i=0; i<sel.length; i+=CHUNK) chunks.push(sel.slice(i,i+CHUNK));
+  var CHUNK = 4;
+  var chunks = [];
+  for (var i=0; i<sel.length; i+=CHUNK) chunks.push(sel.slice(i,i+CHUNK));
 
-  const globalIdx = (ci, li) => ci*CHUNK + li;
+  var globalIdx = function(ci,li){ return ci*CHUNK+li; };
 
-  const Card = ({ ls, idx }) => {
-    const isSale = ls.dealType==='sale';
-    const num = '①②③④⑤⑥⑦⑧⑨⑩'[idx]||String(idx+1);
+  var Card = function(props) {
+    var ls = props.ls;
+    var idx = props.idx;
+    var isSale = ls.dealType==='sale';
+    var num = '①②③④⑤⑥⑦⑧⑨⑩'[idx]||String(idx+1);
     return (
-      <div style={{border:'1pt solid #0d1b2a',padding:'8pt 10pt',display:'flex',flexDirection:'column',position:'relative',overflow:'hidden',WebkitPrintColorAdjust:'exact',printColorAdjust:'exact'}}>
+      <div style={{border:'1pt solid #0d1b2a',padding:'8pt 10pt',display:'flex',flexDirection:'column',overflow:'hidden',WebkitPrintColorAdjust:'exact',printColorAdjust:'exact'}}>
         {/* 카드 헤더 */}
-        <div style={{borderBottom:'1.5pt solid #0d1b2a',paddingBottom:'6pt',marginBottom:'8pt',display:'flex',justifyContent:'space-between',alignItems:'flex-end'}}>
-          <div>
-            <div style={{display:'flex',alignItems:'center',gap:'6pt',marginBottom:'2pt'}}>
-              <span style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'20pt',fontWeight:700,color:'#0d1b2a',lineHeight:1}}>
-                {num}
-              </span>
-              <div>
-                <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'13pt',fontWeight:600,color:'#0d1b2a',lineHeight:1.2}}>
-                  {ls.complexName}
-                  {ls.dong&&<span style={{fontSize:'11pt',color:'#c9a84c',marginLeft:'5pt'}}>{ls.dong}동</span>}
-                </div>
-                {ls.address&&<div style={{fontSize:'9pt',color:'#888',marginTop:'1pt'}}>{ls.address}</div>}
+        <div style={{borderBottom:'1.5pt solid #0d1b2a',paddingBottom:'6pt',marginBottom:'8pt',display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
+          <div style={{display:'flex',alignItems:'flex-start',gap:'6pt'}}>
+            <span style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'20pt',fontWeight:700,color:'#0d1b2a',lineHeight:1,flexShrink:0}}>
+              {num}
+            </span>
+            <div>
+              <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'13pt',fontWeight:600,color:'#0d1b2a',lineHeight:1.2}}>
+                {ls.complexName}
+                {ls.dong&&<span style={{fontSize:'11pt',color:'#c9a84c',marginLeft:'5pt'}}>{ls.dong}동</span>}
               </div>
+              {ls.address&&<div style={{fontSize:'9pt',color:'#888',marginTop:'1pt'}}>{ls.address}</div>}
             </div>
           </div>
-          <span style={{fontSize:'9pt',fontWeight:700,color:'white',background:DEAL_COLOR[ls.dealType]||'#888',padding:'2pt 9pt',flexShrink:0}}>
+          <span style={{fontSize:'9pt',fontWeight:700,color:'white',background:DEAL_COLOR[ls.dealType]||'#888',padding:'2pt 9pt',flexShrink:0,marginLeft:'6pt'}}>
             {DEAL_LABEL[ls.dealType]||ls.dealType}
           </span>
         </div>
@@ -638,11 +638,11 @@ function TourCards({ listings, clientName, reportDate, bizName, agentName, agent
           {!isSale&&(ls.deposit||ls.monthlyRent)&&(
             <>
               {ls.deposit&&<div style={{background:'#fef9e7',padding:'5pt 9pt'}}>
-                <div style={{fontSize:'9pt',color:'#7d6608',letterSpacing:'.08em'}}>보증금</div>
+                <div style={{fontSize:'9pt',color:'#7d6608'}}>보증금</div>
                 <div style={{fontSize:'12pt',fontWeight:700,color:'#7d6608'}}>{fmt(ls.deposit)}</div>
               </div>}
               {ls.monthlyRent&&<div style={{background:'#fef9e7',padding:'5pt 9pt'}}>
-                <div style={{fontSize:'9pt',color:'#7d6608',letterSpacing:'.08em'}}>월세</div>
+                <div style={{fontSize:'9pt',color:'#7d6608'}}>월세</div>
                 <div style={{fontSize:'12pt',fontWeight:700,color:'#7d6608'}}>{fmt(ls.monthlyRent)}</div>
               </div>}
             </>
@@ -652,21 +652,20 @@ function TourCards({ listings, clientName, reportDate, bizName, agentName, agent
         {/* 상세 정보 */}
         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'4pt',marginBottom:'6pt'}}>
           {[
-            ['면적', ls.supplyPy?(ls.supplyPy+'평형'):'—', ls.exclusivePy?('전용 '+ls.exclusivePy+'평형'):null],
+            ['면적', ls.supplyPy?(ls.supplyPy+'평형'):'—', ls.exclusivePy?('전용 '+ls.exclusivePy+'평'):null],
             ['층', ls.floor?(ls.floor+(ls.totalFloor?'/'+ls.totalFloor+'층':'층')):'—', null],
             ['방/욕실', (ls.rooms||'—')+'/'+(ls.bathrooms||'—'), null],
-            ['향', ls.direction||'—', null],
+            ['방향', ls.direction||'—', null],
             ['관리비', ls.mgmtFee?fmt(ls.mgmtFee)+'/월':'—', null],
             ['입주', ls.moveIn||'—', null],
             ['사용승인', ls.approvalDate||'—', null],
             ['주차', ls.parking||'—', null],
-          ].map(function(row,i){
-            var k=row[0],v=row[1],v2=row[2];
+          ].map(function(row,ri){
             return (
-              <div key={i} style={{background:'#f7f4ef',padding:'4pt 6pt'}}>
-                <div style={{fontSize:'8pt',color:'#999',marginBottom:'2pt'}}>{k}</div>
-                <div style={{fontSize:'9pt',fontWeight:600,color:'#0d1b2a',lineHeight:1.3}}>{v}</div>
-                {v2&&<div style={{fontSize:'8pt',color:'#888'}}>{v2}</div>}
+              <div key={ri} style={{background:'#f7f4ef',padding:'4pt 6pt'}}>
+                <div style={{fontSize:'8pt',color:'#999',marginBottom:'2pt'}}>{row[0]}</div>
+                <div style={{fontSize:'9pt',fontWeight:600,color:'#0d1b2a',lineHeight:1.3}}>{row[1]}</div>
+                {row[2]&&<div style={{fontSize:'8pt',color:'#888'}}>{row[2]}</div>}
               </div>
             );
           })}
@@ -680,114 +679,125 @@ function TourCards({ listings, clientName, reportDate, bizName, agentName, agent
           </div>
         )}
 
-        {/* 메모란 — flex:1로 남은 공간 모두 채움 */}
-        <div style={{flex:1,border:'0.5pt dashed #ccc',padding:'5pt 7pt',marginTop:'4pt',display:'flex',flexDirection:'column',minHeight:'40pt'}}>
+        {/* 메모란 */}
+        <div style={{flex:1,border:'0.5pt dashed #ccc',padding:'5pt 7pt',marginTop:'4pt',display:'flex',flexDirection:'column'}}>
           <div style={{fontSize:'8pt',color:'#bbb',marginBottom:'4pt',letterSpacing:'.05em'}}>✎ 메모</div>
           {ls.notes ? (
             <div style={{flex:1}}>
-              {ls.notes.split('\n').filter(function(line){return line.trim();}).map(function(line,i){
+              {ls.notes.split('\n').filter(function(line){return line.trim();}).map(function(line,li){
                 return (
-                  <div key={i} style={{display:'flex',gap:'4pt',fontSize:'9pt',color:'#333',lineHeight:1.7,marginBottom:'1pt'}}>
+                  <div key={li} style={{display:'flex',gap:'4pt',fontSize:'9pt',color:'#333',lineHeight:1.7,marginBottom:'1pt'}}>
                     <span style={{color:'#c9a84c',flexShrink:0,fontWeight:700}}>•</span>
                     <span>{line}</span>
                   </div>
                 );
               })}
             </div>
-          ) : (
-            <div style={{flex:1}} />
-          )}
+          ) : <div style={{flex:1}} />}
         </div>
       </div>
     );
   };
 
-  return (
-    <>
-      {chunks.map((chunk, ci) => (
-        <div key={ci} className="tour-page print-only"
-          style={{flexDirection:'column',boxSizing:'border-box'}}>
+  /* ── 인쇄 전용 페이지들 ── */
+  var pages = chunks.map(function(chunk, ci) {
+    var isLast = ci === chunks.length - 1;
+    var pageStyle = {
+      display:'flex', flexDirection:'column', boxSizing:'border-box',
+      width:'210mm', height:'297mm', padding:'10mm',
+      pageBreakAfter: isLast ? 'avoid' : 'always',
+      breakAfter: isLast ? 'avoid' : 'page',
+      WebkitPrintColorAdjust:'exact', printColorAdjust:'exact',
+    };
+    return (
+      <div key={ci} className="print-only" style={pageStyle}>
 
-          {/* 페이지 헤더 */}
-          <div style={{borderBottom:'1.5pt solid #0d1b2a',paddingBottom:'6pt',marginBottom:'10pt',
-            display:'flex',justifyContent:'space-between',alignItems:'flex-end',flexShrink:0}}>
-            <div>
-              <div style={{fontSize:'7pt',letterSpacing:'.18em',color:'#c9a84c',marginBottom:'4pt'}}>TIMES REAL ESTATE</div>
-              <div style={{display:'flex',alignItems:'baseline',gap:'8pt'}}>
-                <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'22pt',fontWeight:600,color:'#0d1b2a',lineHeight:1}}>
-                  {clientName||'투어 카드'}
-                </div>
-                {clientName&&<div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'14pt',fontWeight:400,color:'#888',lineHeight:1}}>
-                  투어 카드
-                </div>}
+        {/* 헤더 */}
+        <div style={{borderBottom:'1.5pt solid #0d1b2a',paddingBottom:'6pt',marginBottom:'10pt',
+          display:'flex',justifyContent:'space-between',alignItems:'flex-end',flexShrink:0}}>
+          <div>
+            <div style={{fontSize:'7pt',letterSpacing:'.18em',color:'#c9a84c',marginBottom:'5pt'}}>TIMES REAL ESTATE</div>
+            <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'22pt',fontWeight:600,color:'#0d1b2a',lineHeight:1}}>
+              {clientName||'투어 카드'}
+            </div>
+            {clientName&&(
+              <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'13pt',fontWeight:400,color:'#999',lineHeight:1,marginTop:'3pt'}}>
+                투어 카드
               </div>
-            </div>
-            <div style={{textAlign:'right',fontSize:'8pt',color:'#aaa',paddingBottom:'2pt'}}>
-              {reportDate}&nbsp;·&nbsp;총 {sel.length}건
-            </div>
+            )}
           </div>
-
-          {/* 2×2 카드 그리드 */}
-          <div style={{flex:1,display:'grid',gridTemplateColumns:'1fr 1fr',gridTemplateRows:'1fr 1fr',gap:'6pt',minHeight:0}}>
-            {chunk.map((l,li) => <Card key={l.id} ls={l} idx={globalIdx(ci,li)} />)}
-            {chunk.length<4&&Array.from({length:4-chunk.length}).map((_,ei)=>(
-              <div key={'e'+ei} style={{border:'0.5pt dashed #e0dcd4'}} />
-            ))}
-          </div>
-
-          {/* 페이지 푸터 */}
-          <div style={{marginTop:'6pt',borderTop:'1pt solid #c9a84c',paddingTop:'5pt',
-            display:'flex',justifyContent:'space-between',alignItems:'center',flexShrink:0}}>
-            <span style={{display:'flex',alignItems:'center',gap:'8pt'}}>
-              {logoSrc&&<img src={logoSrc} style={{height:'18pt',objectFit:'contain'}} />}
-              {bizName&&<strong style={{color:'#0d1b2a',fontSize:'11pt'}}>{bizName}</strong>}
-            </span>
-            <span style={{display:'flex',alignItems:'center',gap:'16pt'}}>
-              {agentName&&<strong style={{color:'#0d1b2a',fontSize:'11pt'}}>{agentName}</strong>}
-              {agentPhone&&<span style={{fontSize:'11pt',color:'#555'}}>{agentPhone}</span>}
-              {chunks.length>1&&<span style={{fontSize:'9pt',color:'#aaa'}}>{ci+1} / {chunks.length}</span>}
-              {chunks.length===1&&<span style={{fontSize:'9pt',color:'#aaa'}}>1 / 1</span>}
-            </span>
+          <div style={{textAlign:'right',fontSize:'8pt',color:'#aaa',paddingBottom:'2pt'}}>
+            {reportDate}&nbsp;·&nbsp;총 {sel.length}건
           </div>
         </div>
-      ))}
 
-      {/* 화면 미리보기 */}
-      <div className="screen-only">
-        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))',gap:'16px'}}>
-          {sel.map((l,i) => {
-            const isSale = l.dealType==='sale';
-            return (
-              <div key={l.id} style={{border:'1px solid #e0dcd4',padding:'14px',background:'white'}}>
-                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8px',borderBottom:'2px solid #0d1b2a',paddingBottom:'8px'}}>
-                  <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
-                    <span style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'22px',fontWeight:700,color:'#c9a84c'}}>{'①②③④⑤⑥⑦⑧⑨⑩'[i]||i+1}</span>
-                    <div>
-                      <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'16px',fontWeight:600,color:'#0d1b2a'}}>{l.complexName}</div>
-                      {l.dong&&<div style={{fontSize:'11px',color:'#c9a84c'}}>{l.dong}</div>}
-                    </div>
-                  </div>
-                  <span style={{fontSize:'11px',fontWeight:700,color:'white',background:DEAL_COLOR[l.dealType]||'#888',padding:'2px 8px'}}>{DEAL_LABEL[l.dealType]}</span>
-                </div>
-                <div style={{fontSize:'20px',fontWeight:700,color:isSale?'#1a5276':'#196f3d',marginBottom:'8px'}}>
-                  {isSale?fmt(l.salePrice):(l.jeonsePrice?fmt(l.jeonsePrice):(fmt(l.deposit)+' / '+fmt(l.monthlyRent)))}
-                </div>
-                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'4px',fontSize:'12px',color:'#555',marginBottom:'8px'}}>
-                  <span>공급 {l.supplyPy||'—'}평 · 전용 {l.exclusivePy||'—'}평</span>
-                  <span>{l.floor||'—'}층 · {l.direction||'—'}</span>
-                  <span>방/욕실 {l.rooms||'—'}/{l.bathrooms||'—'}</span>
-                  <span>관리비 {l.mgmtFee?fmt(l.mgmtFee):'—'}</span>
-                  <span>입주 {l.moveIn||'—'}</span>
-                  {isSale&&l.supplyPy&&<span style={{color:'#1a5276'}}>공급평단 {perPy(l.salePrice,l.supplyPy)?perPy(l.salePrice,l.supplyPy).toLocaleString()+'만':'—'}</span>}
-                </div>
-                {l.notes&&<div style={{fontSize:'11px',color:'#2471a3',borderTop:'1px dashed #ddd',paddingTop:'6px'}}>{l.notes}</div>}
-              </div>
-            );
+        {/* 2×2 그리드 */}
+        <div style={{flex:1,display:'grid',gridTemplateColumns:'1fr 1fr',gridTemplateRows:'1fr 1fr',gap:'6pt',minHeight:0,overflow:'hidden'}}>
+          {chunk.map(function(l,li){
+            return <Card key={l.id} ls={l} idx={globalIdx(ci,li)} />;
+          })}
+          {chunk.length<4&&Array.from({length:4-chunk.length}).map(function(_,ei){
+            return <div key={'e'+ei} style={{border:'0.5pt dashed #e0dcd4'}} />;
           })}
         </div>
+
+        {/* 푸터 */}
+        <div style={{marginTop:'6pt',borderTop:'1pt solid #c9a84c',paddingTop:'5pt',
+          display:'flex',alignItems:'center',flexShrink:0,position:'relative'}}>
+          <span style={{display:'flex',alignItems:'center',gap:'8pt',flex:1}}>
+            {logoSrc&&<img src={logoSrc} style={{height:'18pt',objectFit:'contain'}} />}
+            {bizName&&<strong style={{color:'#0d1b2a',fontSize:'11pt'}}>{bizName}</strong>}
+          </span>
+          <span style={{position:'absolute',left:'50%',transform:'translateX(-50%)',fontSize:'9pt',color:'#aaa'}}>
+            {ci+1} / {chunks.length}
+          </span>
+          <span style={{display:'flex',alignItems:'center',gap:'10pt',flex:1,justifyContent:'flex-end'}}>
+            {agentName&&<strong style={{color:'#0d1b2a',fontSize:'11pt'}}>{agentName}</strong>}
+            {agentPhone&&<span style={{fontSize:'11pt',color:'#555'}}>{agentPhone}</span>}
+          </span>
+        </div>
       </div>
-    </>
+    );
+  });
+
+  /* ── 화면 미리보기 ── */
+  var screenView = (
+    <div className="screen-only">
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))',gap:'16px'}}>
+        {sel.map(function(l,i){
+          var isSale = l.dealType==='sale';
+          return (
+            <div key={l.id} style={{border:'1px solid #e0dcd4',padding:'14px',background:'white'}}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8px',borderBottom:'2px solid #0d1b2a',paddingBottom:'8px'}}>
+                <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+                  <span style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'22px',fontWeight:700,color:'#c9a84c'}}>{'①②③④⑤⑥⑦⑧⑨⑩'[i]||i+1}</span>
+                  <div>
+                    <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'16px',fontWeight:600,color:'#0d1b2a'}}>{l.complexName}</div>
+                    {l.dong&&<div style={{fontSize:'11px',color:'#c9a84c'}}>{l.dong}동</div>}
+                  </div>
+                </div>
+                <span style={{fontSize:'11px',fontWeight:700,color:'white',background:DEAL_COLOR[l.dealType]||'#888',padding:'2px 8px'}}>{DEAL_LABEL[l.dealType]}</span>
+              </div>
+              <div style={{fontSize:'20px',fontWeight:700,color:isSale?'#1a5276':'#196f3d',marginBottom:'8px'}}>
+                {isSale?fmt(l.salePrice):(l.jeonsePrice?fmt(l.jeonsePrice):(fmt(l.deposit)+' / '+fmt(l.monthlyRent)))}
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'4px',fontSize:'12px',color:'#555',marginBottom:'8px'}}>
+                <span>공급 {l.supplyPy||'—'}평형 · 전용 {l.exclusivePy||'—'}평</span>
+                <span>{l.floor||'—'}층 · {l.direction||'—'}</span>
+                <span>방/욕실 {l.rooms||'—'}/{l.bathrooms||'—'}</span>
+                <span>관리비 {l.mgmtFee?fmt(l.mgmtFee):'—'}</span>
+                <span>입주 {l.moveIn||'—'}</span>
+                {isSale&&l.supplyPy&&<span style={{color:'#1a5276'}}>공급평단 {perPy(l.salePrice,l.supplyPy)?perPy(l.salePrice,l.supplyPy).toLocaleString()+'만':'—'}</span>}
+              </div>
+              {l.notes&&<div style={{fontSize:'11px',color:'#2471a3',borderTop:'1px dashed #ddd',paddingTop:'6px'}}>{l.notes}</div>}
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
+
+  return <>{pages}{screenView}</>;
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -956,7 +966,7 @@ function App() {
 
   const printCSS = view==='briefing'
     ? '@media print { @page { size:A4 landscape !important; margin:10mm 10mm 14mm; } .print-only { display:block !important; } .screen-only { display:none !important; } .no-print { display:none !important; } }'
-    : '@media print { @page { size:A4 portrait !important; margin:10mm; } .print-only { display:block !important; } .screen-only { display:none !important; } .no-print { display:none !important; } .tour-page { display:flex !important; width:190mm !important; height:277mm !important; page-break-after:always !important; break-after:page !important; overflow:hidden !important; box-sizing:border-box !important; } .tour-page:last-child { page-break-after:avoid !important; break-after:avoid !important; } }';
+    : '@media print { @page { size:A4 portrait !important; margin:0 !important; } .print-only { display:block !important; } .screen-only { display:none !important; } .no-print { display:none !important; } }';
 
   const TABS = [
     {id:'list',     label:'📋 매물 목록'},
