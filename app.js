@@ -1,5 +1,5 @@
 // ── TIMES 주거 매물 관리 v1.0.0 ──
-const APP_VERSION = 'v1.3.2';
+const APP_VERSION = 'v1.3.3';
 const { useState, useEffect, useRef } = React;
 
 // ── 상수 ──
@@ -791,7 +791,12 @@ function TourCards({ listings, clientName, reportDate, bizName, agentName, agent
     </div>
   );
 
-  return <>{pages}{screenView}</>;
+  return (
+    <div>
+      {pages}
+      {screenView}
+    </div>
+  );
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -960,7 +965,7 @@ function App() {
 
   const printCSS = view==='briefing'
     ? '@media print { @page { size:A4 landscape !important; margin:10mm 10mm 14mm; } .print-only { display:block !important; } .screen-only { display:none !important; } .no-print { display:none !important; } }'
-    : '@media print { @page { size:A4 portrait !important; margin:10mm 10mm 10mm 10mm; } .print-only { display:flex !important; } .screen-only { display:none !important; } .no-print { display:none !important; } .tour-page { flex-direction:column; width:190mm; height:274mm; overflow:hidden; page-break-after:always; break-after:page; box-sizing:border-box; } .tour-page:last-of-type { page-break-after:avoid; break-after:avoid; } }';
+    : '@media print { @page { size:A4 portrait !important; margin:10mm; } .print-only { display:block !important; } .screen-only { display:none !important; } .no-print { display:none !important; } .tour-page { display:flex !important; flex-direction:column !important; width:190mm !important; height:277mm !important; overflow:hidden !important; box-sizing:border-box !important; page-break-inside:avoid !important; break-inside:avoid !important; } }';
 
   const TABS = [
     {id:'list',     label:'📋 매물 목록'},
