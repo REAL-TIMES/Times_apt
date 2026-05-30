@@ -910,8 +910,8 @@ function App() {
   }
 
   const printCSS = view==='briefing'
-    ? '@media print { @page { size:A4 landscape !important; margin:10mm 10mm 14mm; } .print-only { display:block !important; } }'
-    : '@media print { @page { size:A4 portrait !important; margin:10mm 10mm 14mm; } .print-only { display:block !important; } }';
+    ? '@media print { @page { size:A4 landscape !important; margin:10mm 10mm 14mm; } .print-only { display:block !important; } .screen-only { display:none !important; } .no-print { display:none !important; } }'
+    : '@media print { @page { size:A4 portrait !important; margin:10mm 10mm 14mm; } .print-only { display:block !important; } .screen-only { display:none !important; } .no-print { display:none !important; } }';
 
   const TABS = [
     {id:'list',     label:'📋 매물 목록'},
