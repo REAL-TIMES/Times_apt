@@ -1,5 +1,5 @@
 // ── TIMES 주거 매물 관리 v1.0.0 ──
-const APP_VERSION = 'v1.3.4';
+const APP_VERSION = 'v1.3.5';
 const { useState, useEffect, useRef } = React;
 
 // ── 상수 ──
@@ -650,19 +650,18 @@ function TourCards({ listings, clientName, reportDate, bizName, agentName, agent
         </div>
 
         {/* 상세 정보 */}
-        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'4pt',marginBottom:'6pt'}}>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr 1fr 1fr 1fr',gap:'4pt',marginBottom:'6pt'}}>
           {[
-            ['면적', ls.supplyPy?(ls.supplyPy+'평형'):'—', ls.exclusivePy?('전용 '+ls.exclusivePy+'평'):null],
-            ['층', ls.floor?(ls.floor+(ls.totalFloor?'/'+ls.totalFloor+'층':'층')):'—', null],
-            ['방/욕실', (ls.rooms||'—')+'/'+(ls.bathrooms||'—'), null],
-            ['방향', ls.direction||'—', null],
-            ['관리비', ls.mgmtFee?fmt(ls.mgmtFee)+'/월':'—', null],
-            ['입주', ls.moveIn||'—', null],
-            ['사용승인', ls.approvalDate||'—', null],
-            ['주차', ls.parking||'—', null],
+            ['관리비', ls.mgmtFee?fmt(ls.mgmtFee)+'/월':'—', null, 1],
+            ['면적', ls.supplyPy?(ls.supplyPy+'평형'):'—', ls.exclusivePy?('전용 '+ls.exclusivePy+'평'):null, 1],
+            ['층', ls.floor?(ls.floor+(ls.totalFloor?'/'+ls.totalFloor+'층':'층')):'—', null, 1],
+            ['방/욕실', (ls.rooms||'—')+'/'+(ls.bathrooms||'—'), null, 1],
+            ['방향', ls.direction||'—', null, 1],
+            ['사용승인', ls.approvalDate||'—', null, 1],
+            ['입주', ls.moveIn||'—', null, 2],
           ].map(function(row,ri){
             return (
-              <div key={ri} style={{background:'#f7f4ef',padding:'4pt 6pt'}}>
+              <div key={ri} style={{background:'#f7f4ef',padding:'4pt 6pt',gridColumn:'span '+row[3]}}>
                 <div style={{fontSize:'8pt',color:'#999',marginBottom:'2pt'}}>{row[0]}</div>
                 <div style={{fontSize:'9pt',fontWeight:600,color:'#0d1b2a',lineHeight:1.3}}>{row[1]}</div>
                 {row[2]&&<div style={{fontSize:'8pt',color:'#888'}}>{row[2]}</div>}
@@ -793,7 +792,9 @@ function TourCards({ listings, clientName, reportDate, bizName, agentName, agent
 
   return (
     <>
-      {pages}
+      <div className="tour-wrap">
+        {pages}
+      </div>
       {screenView}
     </>
   );
@@ -965,7 +966,7 @@ function App() {
 
   const printCSS = view==='briefing'
     ? '@media print { @page { size:A4 landscape !important; margin:10mm 10mm 14mm; } .print-only { display:block !important; } .screen-only { display:none !important; } .no-print { display:none !important; } }'
-    : '@media print { @page { size:A4 portrait !important; margin:10mm; } .print-only { display:block !important; } .screen-only { display:none !important; } .no-print { display:none !important; } .tour-page { display:flex !important; flex-direction:column !important; width:190mm !important; height:276mm !important; overflow:hidden !important; box-sizing:border-box !important; page-break-after:always !important; break-after:page !important; } .tour-page:last-of-type { page-break-after:avoid !important; break-after:avoid !important; } }';
+    : '@media print { @page { size:A4 portrait !important; margin:10mm; } .print-only { display:block !important; } .screen-only { display:none !important; } .no-print { display:none !important; } .tour-wrap { display:block !important; } .tour-page { display:flex !important; flex-direction:column !important; width:190mm !important; height:276mm !important; overflow:hidden !important; box-sizing:border-box !important; page-break-after:always !important; break-after:page !important; } .tour-page:last-child { page-break-after:avoid !important; break-after:avoid !important; } }';
 
   const TABS = [
     {id:'list',     label:'📋 매물 목록'},
