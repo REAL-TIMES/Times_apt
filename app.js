@@ -1,5 +1,5 @@
 // ── TIMES 주거 매물 관리 v1.0.0 ──
-const APP_VERSION = 'v1.3.3';
+const APP_VERSION = 'v1.3.4';
 const { useState, useEffect, useRef } = React;
 
 // ── 상수 ──
@@ -419,8 +419,8 @@ function LCard({ ls, onEdit, onDelete, onToggle, onDragStart, onDragOver, onDrop
         </div>
         {isSale && ls.salePrice && ls.supplyPy && (
           <div style={{marginTop:'4px',fontSize:'10px',color:'#1a5276'}}>
-            공급평단 {fmtPy(ls.salePrice, ls.supplyPy)}
-            {ls.exclusivePy && ' · 전용평단 '+fmtPy(ls.salePrice, ls.exclusivePy)}
+            공급평당 {fmtPy(ls.salePrice, ls.supplyPy)}
+            {ls.exclusivePy && ' · 전용평당 '+fmtPy(ls.salePrice, ls.exclusivePy)}
           </div>
         )}
         {ls.notes && <div style={{marginTop:'4px',fontSize:'10px',color:'#2471a3',lineHeight:1.4}}>{ls.notes.slice(0,50)}{ls.notes.length>50?'…':''}</div>}
@@ -523,9 +523,9 @@ function BriefingSheet({ listings, clientName, reportDate, bizName, bizAddr, age
               {/* 평단가 (매매만) */}
               {isSale&&(
                 <>
-                  <tr><td style={{...labelS,borderTop:'1pt solid #ccc8c0',color:'#1a5276'}}>공급평단가</td>
+                  <tr><td style={{...labelS,borderTop:'1pt solid #ccc8c0',color:'#1a5276'}}>공급평당가</td>
                     {chunk.map((l,i)=><td key={l.id} style={{...cellS(i),borderTop:'1pt solid #ccc8c0',color:'#1a5276',fontWeight:600}}>{fmtPy(l.salePrice,l.supplyPy)}</td>)}</tr>
-                  <tr><td style={{...labelS,color:'#1a5276'}}>전용평단가</td>
+                  <tr><td style={{...labelS,color:'#1a5276'}}>전용평당가</td>
                     {chunk.map((l,i)=><td key={l.id} style={{...cellS(i),color:'#1a5276',fontWeight:600}}>{fmtPy(l.salePrice,l.exclusivePy)}</td>)}</tr>
                 </>
               )}
@@ -574,7 +574,7 @@ function BriefingSheet({ listings, clientName, reportDate, bizName, bizAddr, age
             {sel.some(l=>l.mgmtFee)&&<tr><td style={{padding:'6px 10px',background:'#fafaf8',textAlign:'center'}}>관리비</td>{sel.map((l,i)=><td key={l.id} style={{padding:'6px 10px',textAlign:'center',borderBottom:'0.5px solid #f0ede6',background:i%2===0?'white':'#fafaf8'}}>{l.mgmtFee?fmt(l.mgmtFee):'—'}</td>)}</tr>}
             <tr><td style={{padding:'6px 10px',background:'#fafaf8',textAlign:'center'}}>공급/전용</td>{sel.map((l,i)=><td key={l.id} style={{padding:'6px 10px',textAlign:'center',borderBottom:'0.5px solid #f0ede6',background:i%2===0?'white':'#fafaf8'}}>{(l.supplyPy||'—')+'/'+(l.exclusivePy||'—')+'평'}</td>)}</tr>
             <tr><td style={{padding:'6px 10px',background:'#fafaf8',textAlign:'center'}}>층/방/향</td>{sel.map((l,i)=><td key={l.id} style={{padding:'6px 10px',textAlign:'center',borderBottom:'0.5px solid #f0ede6',background:i%2===0?'white':'#fafaf8'}}>{(l.floor||'—')+'층 '+(l.rooms||'—')+'방 '+(l.direction||'—')}</td>)}</tr>
-            {isSale&&<tr><td style={{padding:'6px 10px',background:'#e8f4fd',color:'#1a5276',fontWeight:700,textAlign:'center'}}>공급평단가</td>{sel.map((l,i)=><td key={l.id} style={{padding:'6px 10px',textAlign:'center',color:'#1a5276',fontWeight:600,borderBottom:'0.5px solid #f0ede6',background:i%2===0?'#f0f7ff':'#e8f4fd'}}>{fmtPy(l.salePrice,l.supplyPy)}</td>)}</tr>}
+            {isSale&&<tr><td style={{padding:'6px 10px',background:'#e8f4fd',color:'#1a5276',fontWeight:700,textAlign:'center'}}>공급평당가</td>{sel.map((l,i)=><td key={l.id} style={{padding:'6px 10px',textAlign:'center',color:'#1a5276',fontWeight:600,borderBottom:'0.5px solid #f0ede6',background:i%2===0?'#f0f7ff':'#e8f4fd'}}>{fmtPy(l.salePrice,l.supplyPy)}</td>)}</tr>}
           </tbody>
         </table>
       </div>
@@ -611,7 +611,7 @@ function TourCards({ listings, clientName, reportDate, bizName, agentName, agent
             <div>
               <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'13pt',fontWeight:600,color:'#0d1b2a',lineHeight:1.2}}>
                 {ls.complexName}
-                {ls.dong&&<span style={{fontSize:'11pt',color:'#c9a84c',marginLeft:'5pt'}}>{ls.dong}동</span>}
+                {ls.dong&&<span style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'11pt',color:'#c9a84c',marginLeft:'5pt'}}>{ls.dong}동</span>}
               </div>
               {ls.address&&<div style={{fontSize:'9pt',color:'#888',marginTop:'1pt'}}>{ls.address}</div>}
             </div>
@@ -674,8 +674,8 @@ function TourCards({ listings, clientName, reportDate, bizName, agentName, agent
         {/* 평단가 (매매만) */}
         {isSale&&ls.salePrice&&(ls.supplyPy||ls.exclusivePy)&&(
           <div style={{display:'flex',gap:'10pt',marginBottom:'6pt',fontSize:'9pt',color:'#1a5276'}}>
-            {ls.supplyPy&&<span>공급평단 <strong>{fmtPy(ls.salePrice,ls.supplyPy)}</strong></span>}
-            {ls.exclusivePy&&<span>전용평단 <strong>{fmtPy(ls.salePrice,ls.exclusivePy)}</strong></span>}
+            {ls.supplyPy&&<span>공급평당 <strong>{fmtPy(ls.salePrice,ls.supplyPy)}</strong></span>}
+            {ls.exclusivePy&&<span>전용평당 <strong>{fmtPy(ls.salePrice,ls.exclusivePy)}</strong></span>}
           </div>
         )}
 
@@ -781,7 +781,7 @@ function TourCards({ listings, clientName, reportDate, bizName, agentName, agent
                 <span>방/욕실 {l.rooms||'—'}/{l.bathrooms||'—'}</span>
                 <span>관리비 {l.mgmtFee?fmt(l.mgmtFee):'—'}</span>
                 <span>입주 {l.moveIn||'—'}</span>
-                {isSale&&l.supplyPy&&<span style={{color:'#1a5276'}}>공급평단 {perPy(l.salePrice,l.supplyPy)?perPy(l.salePrice,l.supplyPy).toLocaleString()+'만':'—'}</span>}
+                {isSale&&l.supplyPy&&<span style={{color:'#1a5276'}}>공급평당 {perPy(l.salePrice,l.supplyPy)?perPy(l.salePrice,l.supplyPy).toLocaleString()+'만':'—'}</span>}
               </div>
               {l.notes&&<div style={{fontSize:'11px',color:'#2471a3',borderTop:'1px dashed #ddd',paddingTop:'6px'}}>{l.notes}</div>}
             </div>
@@ -792,10 +792,10 @@ function TourCards({ listings, clientName, reportDate, bizName, agentName, agent
   );
 
   return (
-    <div>
+    <>
       {pages}
       {screenView}
-    </div>
+    </>
   );
 }
 
@@ -965,7 +965,7 @@ function App() {
 
   const printCSS = view==='briefing'
     ? '@media print { @page { size:A4 landscape !important; margin:10mm 10mm 14mm; } .print-only { display:block !important; } .screen-only { display:none !important; } .no-print { display:none !important; } }'
-    : '@media print { @page { size:A4 portrait !important; margin:10mm; } .print-only { display:block !important; } .screen-only { display:none !important; } .no-print { display:none !important; } .tour-page { display:flex !important; flex-direction:column !important; width:190mm !important; height:277mm !important; overflow:hidden !important; box-sizing:border-box !important; page-break-inside:avoid !important; break-inside:avoid !important; } }';
+    : '@media print { @page { size:A4 portrait !important; margin:10mm; } .print-only { display:block !important; } .screen-only { display:none !important; } .no-print { display:none !important; } .tour-page { display:flex !important; flex-direction:column !important; width:190mm !important; height:276mm !important; overflow:hidden !important; box-sizing:border-box !important; page-break-after:always !important; break-after:page !important; } .tour-page:last-of-type { page-break-after:avoid !important; break-after:avoid !important; } }';
 
   const TABS = [
     {id:'list',     label:'📋 매물 목록'},
