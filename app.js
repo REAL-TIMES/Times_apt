@@ -742,9 +742,9 @@ function TourCards({ listings, clientName, reportDate, bizName, agentName, agent
                   <span>공급 {l.supplyPy||'—'}평 · 전용 {l.exclusivePy||'—'}평</span>
                   <span>{l.floor||'—'}층 · {l.direction||'—'}</span>
                   <span>방/욕실 {l.rooms||'—'}/{l.bathrooms||'—'}</span>
-                  <span>관리비 {l.mgmtFee?fmt(l.mgmtFee):—}</span>
+                  <span>관리비 {l.mgmtFee?fmt(l.mgmtFee):'—'}</span>
                   <span>입주 {l.moveIn||'—'}</span>
-                  {isSale&&<span style={{color:'#1a5276'}}>공급평단 {fmtPy(l.salePrice,l.supplyPy)}</span>}
+                  {isSale&&l.supplyPy&&<span style={{color:'#1a5276'}}>공급평단 {perPy(l.salePrice,l.supplyPy)?perPy(l.salePrice,l.supplyPy).toLocaleString()+'만':'—'}</span>}
                 </div>
                 {l.notes&&<div style={{fontSize:'11px',color:'#2471a3',borderTop:'1px dashed #ddd',paddingTop:'6px'}}>{l.notes}</div>}
               </div>
