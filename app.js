@@ -1,5 +1,5 @@
 // ── TIMES 주거 매물 관리 v1.0.0 ──
-const APP_VERSION = 'v1.1.0';
+const APP_VERSION = 'v1.2.1';
 const { useState, useEffect, useRef } = React;
 
 // ── 상수 ──
@@ -599,7 +599,7 @@ function TourCards({ listings, clientName, reportDate, bizName, agentName, agent
     const isSale = ls.dealType==='sale';
     const num = '①②③④⑤⑥⑦⑧⑨⑩'[idx]||String(idx+1);
     return (
-      <div style={{border:'1pt solid #0d1b2a',padding:'10pt 12pt',height:'130mm',boxSizing:'border-box',display:'flex',flexDirection:'column',position:'relative',overflow:'hidden',WebkitPrintColorAdjust:'exact',printColorAdjust:'exact'}}>
+      <div style={{border:'1pt solid #0d1b2a',padding:'10pt 12pt',height:'116mm',boxSizing:'border-box',display:'flex',flexDirection:'column',position:'relative',overflow:'hidden',WebkitPrintColorAdjust:'exact',printColorAdjust:'exact'}}>
         {/* 카드 헤더 */}
         <div style={{borderBottom:'1.5pt solid #0d1b2a',paddingBottom:'6pt',marginBottom:'7pt',display:'flex',justifyContent:'space-between',alignItems:'flex-end'}}>
           <div>
@@ -683,10 +683,9 @@ function TourCards({ listings, clientName, reportDate, bizName, agentName, agent
           {ls.notes ? (
             <div style={{fontSize:'8pt',color:'#333',lineHeight:1.6}}>{ls.notes}</div>
           ) : (
-            <div style={{display:'flex',flexDirection:'column',gap:'8pt',marginTop:'4pt'}}>
-              <div style={{borderBottom:'0.3pt solid #ddd',height:'8pt'}} />
-              <div style={{borderBottom:'0.3pt solid #ddd',height:'8pt'}} />
-              <div style={{borderBottom:'0.3pt solid #ddd',height:'8pt'}} />
+            <div style={{display:'flex',flexDirection:'column',gap:'6pt',marginTop:'3pt'}}>
+              <div style={{borderBottom:'0.3pt solid #ddd',height:'7pt'}} />
+              <div style={{borderBottom:'0.3pt solid #ddd',height:'7pt'}} />
             </div>
           )}
         </div>
@@ -699,18 +698,35 @@ function TourCards({ listings, clientName, reportDate, bizName, agentName, agent
       {chunks.map((chunk, ci) => (
         <div key={ci} className="print-only"
           style={{pageBreakBefore:ci>0?'always':'auto',breakBefore:ci>0?'page':'auto'}}>
-          {/* 페이지 헤더 */}
-          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8pt',paddingBottom:'4pt',borderBottom:'0.8pt solid #c9a84c'}}>
-            <div style={{display:'flex',alignItems:'center',gap:'8pt'}}>
-              {logoSrc&&<img src={logoSrc} style={{height:'14pt',objectFit:'contain'}} />}
-              <span style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'13pt',fontWeight:600,color:'#0d1b2a'}}>{clientName||'투어 카드'}</span>
+          {/* 페이지 헤더 - 브리핑 시트와 동일 */}
+          <div style={{borderBottom:'1.5pt solid #0d1b2a',paddingBottom:'6pt',marginBottom:'8pt',display:'flex',justifyContent:'space-between',alignItems:'flex-end'}}>
+            <div>
+              <div style={{fontSize:'7pt',letterSpacing:'.15em',color:'#c9a84c',marginBottom:'4pt'}}>TIMES REAL ESTATE</div>
+              <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'20pt',fontWeight:600,color:'#0d1b2a',lineHeight:1}}>
+                {clientName ? clientName+' 투어 카드' : '투어 카드'}
+              </div>
             </div>
-            <span style={{fontSize:'7.5pt',color:'#888'}}>{bizName} · {agentName} {agentPhone} · {reportDate}</span>
+            <div style={{textAlign:'right',fontSize:'8pt',color:'#aaa',paddingBottom:'2pt'}}>
+              {reportDate}&nbsp;·&nbsp;총 {sel.length}건
+              {chunks.length>1&&<span>&nbsp;·&nbsp;{ci+1}/{chunks.length} 페이지</span>}
+            </div>
           </div>
 
           {/* 2×2 카드 그리드 */}
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8pt'}}>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'6pt'}}>
             {chunk.map((l,li) => <Card key={l.id} ls={l} idx={globalIdx(ci,li)} />)}
+          </div>
+
+          {/* 페이지 푸터 - 브리핑 시트와 동일 */}
+          <div style={{marginTop:'6pt',borderTop:'0.8pt solid #c9a84c',paddingTop:'5pt',fontSize:'7.5pt',color:'#555',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+            <span style={{display:'flex',alignItems:'center',gap:'6pt'}}>
+              {logoSrc&&<img src={logoSrc} style={{height:'14pt',objectFit:'contain'}} />}
+              {bizName&&<strong style={{color:'#0d1b2a'}}>{bizName}</strong>}
+            </span>
+            <span>
+              {agentName&&<strong style={{color:'#0d1b2a',marginRight:'6pt'}}>{agentName}</strong>}
+              {agentPhone&&<span>{agentPhone}</span>}
+            </span>
           </div>
         </div>
       ))}
@@ -894,16 +910,23 @@ function App() {
 
   const onDelete = (id,name)=>{ setConfirmDlg({ message:name+' 매물을 삭제하시겠습니까?', onConfirm:async()=>{ setDelBusy(true); try{await dbDelete(id);setListings(p=>p.filter(x=>x.id!==id));setConfirmDlg(null);}catch(e){alert('삭제 실패:'+e.message);}finally{setDelBusy(false);} } }); };
 
+  const onBulkDelete = ()=>{
+    const sel = filteredListings.filter(l=>l.printSel);
+    if (!sel.length) return;
+    setConfirmDlg({ message:'선택한 '+sel.length+'개 매물을 삭제하시겠습니까?', subMessage:'이 작업은 되돌릴 수 없습니다.',
+      onConfirm: async()=>{ setDelBusy(true); try{ for(const s of sel) await dbDelete(s.id); setListings(p=>p.filter(l=>!sel.find(s=>s.id===l.id))); setConfirmDlg(null); }catch(e){alert('삭제 실패:'+e.message);} finally{setDelBusy(false);} }
+    });
+  };
   const onToggle = async id=>{ const updated=listings.map(x=>x.id===id?{...x,printSel:!x.printSel}:x); setListings(updated); const ls=updated.find(x=>x.id===id); if(ls) await dbUpsert(ls).catch(e=>console.warn(e)); };
 
-  const selCount = listings.filter(l=>l.printSel).length;
-
-  // 필터
+  // 필터 (selCount 계산 전에 정의)
   const filteredListings = dealFilter==='all' ? listings : listings.filter(l=>{
     if (dealFilter==='sale') return l.dealType==='sale';
     if (dealFilter==='jeonse-monthly') return l.dealType==='jeonse'||l.dealType==='monthly'||l.dealType==='rent';
     return true;
   });
+  const selCount     = listings.filter(l=>l.printSel).length;
+  const filtSelCount = filteredListings.filter(l=>l.printSel).length;
 
   if (!dbReady&&!loading) {
     const cred=localStorage.getItem(STO_CRED);
@@ -968,10 +991,18 @@ function App() {
                   <option value="sale">매매</option>
                   <option value="jeonse-monthly">전세/월세</option>
                 </select>
-                <button onClick={()=>setListings(p=>p.map(x=>({...x,printSel:true})))}
-                  style={{padding:'6px 14px',fontSize:'13px',background:'white',border:'1px solid #bbb',cursor:'pointer',fontFamily:'inherit'}}>전체 선택</button>
-                <button onClick={()=>setListings(p=>p.map(x=>({...x,printSel:false})))}
-                  style={{padding:'6px 14px',fontSize:'13px',background:'white',border:'1px solid #bbb',cursor:'pointer',fontFamily:'inherit'}}>선택 해제</button>
+                <button onClick={()=>{
+                    const ids=new Set(filteredListings.map(l=>l.id));
+                    setListings(p=>p.map(x=>ids.has(x.id)?{...x,printSel:true}:x));
+                  }} style={{padding:'6px 14px',fontSize:'13px',background:'white',border:'1px solid #bbb',cursor:'pointer',fontFamily:'inherit'}}>전체 선택</button>
+                <button onClick={()=>{
+                    const ids=new Set(filteredListings.map(l=>l.id));
+                    setListings(p=>p.map(x=>ids.has(x.id)?{...x,printSel:false}:x));
+                  }} style={{padding:'6px 14px',fontSize:'13px',background:'white',border:'1px solid #bbb',cursor:'pointer',fontFamily:'inherit'}}>선택 해제</button>
+                {filtSelCount>0&&<button onClick={onBulkDelete}
+                  style={{padding:'6px 14px',fontSize:'13px',background:'white',border:'1px solid #e07070',color:'#c0392b',cursor:'pointer',fontFamily:'inherit',fontWeight:600}}>
+                  선택 삭제 ({filtSelCount}건)
+                </button>}
                 <button onClick={()=>{setEditing(blank());setShowForm(true);}}
                   style={{padding:'7px 18px',background:'#c9a84c',color:'white',border:'none',cursor:'pointer',fontSize:'14px',fontFamily:'inherit',fontWeight:600}}>+ 새 매물 등록</button>
               </>
