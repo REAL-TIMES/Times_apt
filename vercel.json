@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "headers": [
+    {"source": "/app.js", "headers": [{"key": "Cache-Control", "value": "no-cache, no-store, must-revalidate"}]}
+  ],
+  "routes": [
+    {"src": "/api/(.*)", "dest": "/api/$1"},
+    {"src": "/app.js", "dest": "/app.js"},
+    {"src": "/(.*)", "dest": "/index.html"}
+  ]
+}
