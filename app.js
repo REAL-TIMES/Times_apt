@@ -1,5 +1,5 @@
 // ── TIMES 주거 매물 관리 v1.0.0 ──
-const APP_VERSION = 'v1.3.7';
+const APP_VERSION = 'v1.3.8';
 const { useState, useEffect, useRef } = React;
 
 // ── 상수 ──
@@ -611,7 +611,7 @@ function TourCards({ listings, clientName, reportDate, bizName, agentName, agent
             <div>
               <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'13pt',fontWeight:600,color:'#0d1b2a',lineHeight:1.2}}>
                 {ls.complexName}
-                {ls.dong&&<span style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'11pt',color:'#c9a84c',marginLeft:'5pt'}}>{ls.dong}동</span>}
+                {ls.dong&&<span style={{fontFamily:"Georgia,'Times New Roman',serif",fontSize:'11pt',color:'#c9a84c',marginLeft:'5pt',fontWeight:600}}>{ls.dong}동</span>}
               </div>
               {ls.address&&<div style={{fontSize:'9pt',color:'#888',marginTop:'1pt'}}>{ls.address}</div>}
             </div>
