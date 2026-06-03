@@ -1,12 +1,12 @@
 // ── TIMES 주거 매물 관리 ──
-const APP_VERSION = 'v1.5.0';
+const APP_VERSION = 'v1.5.1';
 const { useState, useEffect, useRef } = React;
 
 // ── 상수 ──
 const PY        = 3.30579;
-const STO_INFO  = 'times-apt-info';
 const STO_CACHE = 'times-apt-cache';
 const TBL       = 'residential_listings';
+const TBL_CFG   = 'app_config';          // 설정 저장 테이블
 
 // ── Supabase 하드코딩 ──
 const SB_URL = 'https://vvksunsazcfroupzxgum.supabase.co';
@@ -16,7 +16,7 @@ let _sb = null;
 const getSB  = () => _sb;
 const initSB = () => { _sb = window.supabase.createClient(SB_URL, SB_KEY); return _sb; };
 
-// ── DB ──
+// ── DB: 매물 ──
 const dbLoad = async () => {
   const { data, error } = await getSB()
     .from(TBL).select('id, data, updated_at').order('updated_at', {ascending:true}).limit(300);
@@ -30,6 +30,20 @@ const dbUpsert = async (item) => {
 };
 const dbDelete = async (id) => {
   const { error } = await getSB().from(TBL).delete().eq('id', id);
+  if (error) throw error;
+};
+
+// ── DB: 앱 설정 (로고·상호 등) ──
+const CONFIG_ID = 'times-office-info';
+const dbLoadConfig = async () => {
+  const { data, error } = await getSB().from(TBL_CFG).select('data').eq('id', CONFIG_ID).limit(1);
+  if (error) throw error;
+  if (data && data.length > 0) return data[0].data || {};
+  return {};
+};
+const dbSaveConfig = async (obj) => {
+  const { error } = await getSB().from(TBL_CFG)
+    .upsert({ id: CONFIG_ID, data: obj, updated_at: new Date().toISOString() });
   if (error) throw error;
 };
 
@@ -59,12 +73,15 @@ const fmtShort = v => {
 };
 const fmtPy = (price, py) => (!price||!py||n(py)===0)?'—': Math.round(n(price)/n(py)).toLocaleString()+'만원';
 const perPy = (price, py) => (!price||!py||n(py)===0)?null: Math.round(n(price)/n(py));
-const loadInfo = () => { try { return JSON.parse(localStorage.getItem(STO_INFO)||'{}'); } catch { return {}; } };
-const saveInfo = obj => localStorage.setItem(STO_INFO, JSON.stringify(obj));
 
 const DEAL_LABEL = { sale:'매매', jeonse:'전세', monthly:'월세', rent:'렌트' };
 const DEAL_COLOR = { sale:'#1a5276', jeonse:'#196f3d', monthly:'#7d6608', rent:'#6e2f1a' };
 const PROP_LABEL = { apt:'아파트', villa:'빌라/다세대', officetel:'오피스텔' };
+
+const INFO_DEFAULT = {
+  bizName:'타임즈부동산중개', bizAddr:'서울특별시 서초구 반포동 반포프라자',
+  agentName:'성재윤', agentPhone:'010-6655-5445', logoSrc:''
+};
 
 const blank = () => ({
   id: uid(), createdAt: Date.now(), sortOrder: 0,
@@ -230,7 +247,6 @@ function ListingForm({ init, onSave, onClose }) {
           </button>
         </div>
 
-        {/* 거래 유형 */}
         <div style={{fontSize:'11px',fontWeight:600,color:'#c9a84c',letterSpacing:'.1em',marginBottom:'8px'}}>거래 유형</div>
         <div style={{display:'flex',gap:'8px',marginBottom:'16px',flexWrap:'wrap'}}>
           {Object.entries(DEAL_LABEL).map(([v,l]) => (
@@ -253,7 +269,6 @@ function ListingForm({ init, onSave, onClose }) {
           </div>
         </div>
 
-        {/* 기본 정보 */}
         <div style={{fontSize:'11px',fontWeight:600,color:'#c9a84c',letterSpacing:'.1em',marginBottom:'8px'}}>기본 정보</div>
         <div style={{display:'grid',gridTemplateColumns:'2fr 1fr 1fr',gap:'10px',marginBottom:'16px'}}>
           {fld('단지/건물명 *','complexName','예) 래미안원베일리')}
@@ -264,7 +279,6 @@ function ListingForm({ init, onSave, onClose }) {
           {fld('주소','address','서울특별시 서초구...')}
         </div>
 
-        {/* 가격 */}
         <div style={{fontSize:'11px',fontWeight:600,color:'#c9a84c',letterSpacing:'.1em',marginBottom:'8px'}}>가격 (만원)</div>
         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'10px',marginBottom:'16px'}}>
           {isSale && fld('매매가','salePrice','예) 120000')}
@@ -274,7 +288,6 @@ function ListingForm({ init, onSave, onClose }) {
           {fld('관리비/월','mgmtFee','예) 25')}
         </div>
 
-        {/* 면적 */}
         <div style={{fontSize:'11px',fontWeight:600,color:'#c9a84c',letterSpacing:'.1em',marginBottom:'8px'}}>면적</div>
         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px',marginBottom:'16px'}}>
           <AreaInput labelPy="공급면적 (평)" labelM2="공급면적 (㎡)"
@@ -285,7 +298,6 @@ function ListingForm({ init, onSave, onClose }) {
             onChangePy={v=>set('exclusivePy',v)} onChangeM2={v=>set('exclusiveM2',v)} />
         </div>
 
-        {/* 상세 정보 */}
         <div style={{fontSize:'11px',fontWeight:600,color:'#c9a84c',letterSpacing:'.1em',marginBottom:'8px'}}>상세 정보</div>
         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr 1fr',gap:'10px',marginBottom:'16px'}}>
           {fld('해당층','floor','예) 중')}
@@ -349,7 +361,6 @@ function LCard({ ls, onEdit, onDelete, onToggle, onDragStart, onDragOver, onDrop
             style={{cursor:'pointer',marginLeft:'8px',flexShrink:0}} />
         </div>
 
-        {/* 가격 */}
         <div style={{background:'#f7f4ef',padding:'7px 10px',marginBottom:'7px'}}>
           {isSale && ls.salePrice && <div style={{display:'flex',justifyContent:'space-between'}}>
             <span style={{fontSize:'13px',color:'#888'}}>매매가</span>
@@ -369,7 +380,6 @@ function LCard({ ls, onEdit, onDelete, onToggle, onDragStart, onDragOver, onDrop
           </div>}
         </div>
 
-        {/* 면적/상세 */}
         <div style={{display:'flex',gap:'12px',fontSize:'13px',color:'#666',flexWrap:'wrap'}}>
           {ls.supplyPy && <span>공급 <strong>{ls.supplyPy}평</strong></span>}
           {ls.exclusivePy && <span>전용 <strong>{ls.exclusivePy}평</strong></span>}
@@ -506,7 +516,6 @@ function BriefingSheet({ listings, clientName, reportDate, bizName, bizAddr, age
         </div>
       ))}
 
-      {/* 화면 미리보기 */}
       <div className="screen-only" style={{overflowX:'auto'}}>
         <table style={{borderCollapse:'collapse',minWidth:'600px',fontSize:'12px',borderTop:'2px solid #0d1b2a'}}>
           <thead>
@@ -557,13 +566,11 @@ function TourCards({ listings, clientName, reportDate, bizName, agentName, agent
       <div style={{border:'1pt solid #0d1b2a',padding:'8pt 10pt',display:'flex',flexDirection:'column',overflow:'hidden',WebkitPrintColorAdjust:'exact',printColorAdjust:'exact'}}>
         <div style={{borderBottom:'1.5pt solid #0d1b2a',paddingBottom:'6pt',marginBottom:'8pt',display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
           <div style={{display:'flex',alignItems:'flex-start',gap:'6pt'}}>
-            <span style={{fontFamily:"'Noto Sans KR','Apple SD Gothic Neo',sans-serif",fontSize:'20pt',fontWeight:700,color:'#0d1b2a',lineHeight:1,flexShrink:0}}>
-              {num}
-            </span>
+            <span style={{fontFamily:"'Noto Sans KR','Apple SD Gothic Neo',sans-serif",fontSize:'20pt',fontWeight:700,color:'#0d1b2a',lineHeight:1,flexShrink:0}}>{num}</span>
             <div>
               <div style={{fontFamily:"'Noto Sans KR','Apple SD Gothic Neo',sans-serif",fontSize:'13pt',fontWeight:600,color:'#0d1b2a',lineHeight:1.2}}>
                 {ls.complexName}
-                {ls.dong&&<span style={{fontFamily:"'Noto Sans KR','Apple SD Gothic Neo',sans-serif",fontSize:'11pt',color:'#c9a84c',marginLeft:'5pt',fontWeight:600}}>{ls.dong}동</span>}
+                {ls.dong&&<span style={{fontSize:'11pt',color:'#c9a84c',marginLeft:'5pt',fontWeight:600}}>{ls.dong}동</span>}
               </div>
               {ls.address&&<div style={{fontSize:'9pt',color:'#888',marginTop:'1pt'}}>{ls.address}</div>}
             </div>
@@ -576,13 +583,13 @@ function TourCards({ listings, clientName, reportDate, bizName, agentName, agent
         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'5pt',marginBottom:'7pt'}}>
           {isSale&&ls.salePrice&&(
             <div style={{background:'#eaf0f8',padding:'6pt 9pt',gridColumn:'1/-1'}}>
-              <div style={{fontSize:'9pt',color:'#1a5276',letterSpacing:'.05em',marginBottom:'2pt'}}>매매가</div>
+              <div style={{fontSize:'9pt',color:'#1a5276',marginBottom:'2pt'}}>매매가</div>
               <div style={{fontSize:'16pt',fontWeight:700,color:'#1a5276',lineHeight:1}}>{fmt(ls.salePrice)}</div>
             </div>
           )}
           {!isSale&&ls.jeonsePrice&&(
             <div style={{background:'#eafaf1',padding:'6pt 9pt',gridColumn:'1/-1'}}>
-              <div style={{fontSize:'9pt',color:'#196f3d',letterSpacing:'.05em',marginBottom:'2pt'}}>전세가</div>
+              <div style={{fontSize:'9pt',color:'#196f3d',marginBottom:'2pt'}}>전세가</div>
               <div style={{fontSize:'16pt',fontWeight:700,color:'#196f3d',lineHeight:1}}>{fmt(ls.jeonsePrice)}</div>
             </div>
           )}
@@ -629,7 +636,7 @@ function TourCards({ listings, clientName, reportDate, bizName, agentName, agent
         )}
 
         <div style={{flex:1,border:'0.5pt dashed #ccc',padding:'5pt 7pt',marginTop:'4pt',display:'flex',flexDirection:'column'}}>
-          <div style={{fontSize:'8pt',color:'#bbb',marginBottom:'4pt',letterSpacing:'.05em'}}>✎ 메모</div>
+          <div style={{fontSize:'8pt',color:'#bbb',marginBottom:'4pt'}}>✎ 메모</div>
           {ls.notes ? (
             <div style={{flex:1}}>
               {ls.notes.split('\n').filter(function(line){return line.trim();}).map(function(line,li){
@@ -650,8 +657,7 @@ function TourCards({ listings, clientName, reportDate, bizName, agentName, agent
   var pages = chunks.map(function(chunk, ci) {
     return (
       <div key={ci} className="tour-page print-only">
-        <div style={{borderBottom:'1.5pt solid #0d1b2a',paddingBottom:'7pt',marginBottom:'12pt',
-          display:'flex',justifyContent:'space-between',alignItems:'flex-end',flexShrink:0}}>
+        <div style={{borderBottom:'1.5pt solid #0d1b2a',paddingBottom:'7pt',marginBottom:'12pt',display:'flex',justifyContent:'space-between',alignItems:'flex-end',flexShrink:0}}>
           <div>
             <div style={{fontSize:'7pt',letterSpacing:'.2em',color:'#c9a84c',marginBottom:'6pt'}}>TIMES REAL ESTATE</div>
             <div style={{display:'flex',alignItems:'baseline',gap:'10pt'}}>
@@ -671,16 +677,13 @@ function TourCards({ listings, clientName, reportDate, bizName, agentName, agent
         </div>
 
         <div style={{flex:1,display:'grid',gridTemplateColumns:'1fr 1fr',gridTemplateRows:'1fr 1fr',gap:'6pt',minHeight:0,overflow:'hidden'}}>
-          {chunk.map(function(l,li){
-            return <Card key={l.id} ls={l} idx={globalIdx(ci,li)} />;
-          })}
+          {chunk.map(function(l,li){ return <Card key={l.id} ls={l} idx={globalIdx(ci,li)} />; })}
           {chunk.length<4&&Array.from({length:4-chunk.length}).map(function(_,ei){
             return <div key={'e'+ei} style={{border:'0.5pt dashed #e0dcd4'}} />;
           })}
         </div>
 
-        <div style={{marginTop:'6pt',borderTop:'1pt solid #c9a84c',paddingTop:'5pt',
-          display:'flex',alignItems:'center',flexShrink:0,position:'relative'}}>
+        <div style={{marginTop:'6pt',borderTop:'1pt solid #c9a84c',paddingTop:'5pt',display:'flex',alignItems:'center',flexShrink:0,position:'relative'}}>
           <span style={{display:'flex',alignItems:'center',gap:'8pt',flex:1}}>
             {logoSrc&&<img src={logoSrc} style={{height:'18pt',objectFit:'contain'}} />}
             {bizName&&<strong style={{color:'#0d1b2a',fontSize:'11pt'}}>{bizName}</strong>}
@@ -706,9 +709,9 @@ function TourCards({ listings, clientName, reportDate, bizName, agentName, agent
             <div key={l.id} style={{border:'1px solid #e0dcd4',padding:'14px',background:'white'}}>
               <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8px',borderBottom:'2px solid #0d1b2a',paddingBottom:'8px'}}>
                 <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
-                  <span style={{fontFamily:"'Noto Sans KR','Apple SD Gothic Neo',sans-serif",fontSize:'22px',fontWeight:700,color:'#c9a84c'}}>{'①②③④⑤⑥⑦⑧⑨⑩'[i]||i+1}</span>
+                  <span style={{fontSize:'22px',fontWeight:700,color:'#c9a84c'}}>{'①②③④⑤⑥⑦⑧⑨⑩'[i]||i+1}</span>
                   <div>
-                    <div style={{fontFamily:"'Noto Sans KR','Apple SD Gothic Neo',sans-serif",fontSize:'16px',fontWeight:600,color:'#0d1b2a'}}>{l.complexName}</div>
+                    <div style={{fontSize:'16px',fontWeight:600,color:'#0d1b2a'}}>{l.complexName}</div>
                     {l.dong&&<div style={{fontSize:'11px',color:'#c9a84c'}}>{l.dong}동</div>}
                   </div>
                 </div>
@@ -733,12 +736,7 @@ function TourCards({ listings, clientName, reportDate, bizName, agentName, agent
     </div>
   );
 
-  return (
-    <>
-      {pages}
-      {screenView}
-    </>
-  );
+  return (<>{pages}{screenView}</>);
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -748,7 +746,7 @@ function ConfirmModal({ message, subMessage, onConfirm, onCancel, busy }) {
   return (
     <div style={{position:'fixed',inset:0,background:'rgba(13,27,42,0.7)',zIndex:2000,display:'flex',alignItems:'center',justifyContent:'center',padding:'20px'}}>
       <div style={{background:'white',width:'100%',maxWidth:'360px',padding:'28px 24px'}}>
-        <div style={{fontFamily:"'Noto Sans KR','Apple SD Gothic Neo',sans-serif",fontSize:'20px',fontWeight:600,color:'#0d1b2a',marginBottom:'10px'}}>삭제 확인</div>
+        <div style={{fontSize:'20px',fontWeight:600,color:'#0d1b2a',marginBottom:'10px'}}>삭제 확인</div>
         <div style={{fontSize:'13px',color:'#333',marginBottom:'6px',lineHeight:1.6}}>{message}</div>
         {subMessage&&<div style={{fontSize:'11px',color:'#c0392b',background:'#fff5f4',padding:'8px 10px',marginBottom:'4px'}}>{subMessage}</div>}
         <div style={{display:'flex',gap:'8px',justifyContent:'flex-end',marginTop:'20px'}}>
@@ -764,9 +762,9 @@ function ConfirmModal({ message, subMessage, onConfirm, onCancel, busy }) {
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ── 출력 정보 패널 ──
+// ── 출력 정보 패널 (DB 저장) ──
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-function InfoPanel({ info, setInfo }) {
+function InfoPanel({ info, setInfo, saving }) {
   const [open, setOpen] = useState(false);
   const f = (k,v) => setInfo(p=>({...p,[k]:v}));
   const inp = (label, key, ph) => (
@@ -780,6 +778,8 @@ function InfoPanel({ info, setInfo }) {
     <div style={{borderTop:'1px solid #e0dcd4',marginTop:'8px',paddingTop:'8px'}}>
       <div onClick={()=>setOpen(!open)} style={{cursor:'pointer',fontSize:'12px',color:'#888',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
         <span>{open?'▲':'▼'} 출력 정보 설정 (상호 · 담당자 · 로고)</span>
+        {saving&&<span style={{fontSize:'11px',color:'#c9a84c'}}>저장 중…</span>}
+        {!saving&&open&&<span style={{fontSize:'11px',color:'#2ecc71'}}>☁ 클라우드 저장됨</span>}
       </div>
       {open&&(
         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px',marginTop:'10px'}}>
@@ -798,7 +798,11 @@ function InfoPanel({ info, setInfo }) {
                   const r=new FileReader(); r.onload=ev=>f('logoSrc',ev.target.result); r.readAsDataURL(file);
                 }} />
               </label>
+              {info.logoSrc&&<button onClick={()=>f('logoSrc','')} style={{fontSize:'11px',padding:'4px 10px',background:'none',border:'1px solid #ddd',color:'#888',cursor:'pointer'}}>제거</button>}
             </div>
+          </div>
+          <div style={{gridColumn:'1/-1',fontSize:'11px',color:'#aaa',background:'#f7f4ef',padding:'6px 10px'}}>
+            ☁ 설정이 Supabase에 저장되어 모든 기기에서 동일하게 표시됩니다
           </div>
         </div>
       )}
@@ -810,31 +814,50 @@ function InfoPanel({ info, setInfo }) {
 // ── 메인 앱 ──
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function App() {
-  const [listings,  setListings]  = useState([]);
-  const [view,      setView]      = useState('list');
-  const [showForm,  setShowForm]  = useState(false);
-  const [editing,   setEditing]   = useState(null);
-  const [loading,   setLoading]   = useState(false);
-  const [loadErr,   setLoadErr]   = useState('');
-  const [dbReady,   setDbReady]   = useState(false);
-  const [dragId,    setDragId]    = useState(null);
-  const [confirmDlg,setConfirmDlg]= useState(null);
-  const [delBusy,   setDelBusy]   = useState(false);
-  const [dealFilter,setDealFilter]= useState('all');
-  const [clientName,setClientName]= useState('');
-  const [info, setInfo] = useState(()=>({
-    bizName:'타임즈부동산중개', bizAddr:'서울특별시 서초구 반포동 반포프라자',
-    agentName:'성재윤', agentPhone:'010-6655-5445', logoSrc:'',
-    ...loadInfo()
-  }));
+  const [listings,   setListings]  = useState([]);
+  const [view,       setView]      = useState('list');
+  const [showForm,   setShowForm]  = useState(false);
+  const [editing,    setEditing]   = useState(null);
+  const [loading,    setLoading]   = useState(false);
+  const [loadErr,    setLoadErr]   = useState('');
+  const [dbReady,    setDbReady]   = useState(false);
+  const [dragId,     setDragId]    = useState(null);
+  const [confirmDlg, setConfirmDlg]= useState(null);
+  const [delBusy,    setDelBusy]   = useState(false);
+  const [dealFilter, setDealFilter]= useState('all');
+  const [clientName, setClientName]= useState('');
+  const [infoSaving, setInfoSaving]= useState(false);
+  const [info, setInfo] = useState(INFO_DEFAULT);
   const reportDate = new Date().toISOString().slice(0,10);
 
-  // ── 앱 시작시 바로 Supabase 연결 및 데이터 로드 ──
+  // info 변경 debounce 타이머
+  const infoTimer = useRef(null);
+
+  // ── 앱 시작: Supabase 연결 + 데이터 + 설정 로드 ──
   useEffect(()=>{
     initSB();
     loadData();
+    loadConfig();
   },[]);
-  useEffect(()=>{ saveInfo(info); },[info]);
+
+  // ── info 변경 시 1.5초 후 DB 저장 (debounce) ──
+  useEffect(()=>{
+    if (infoTimer.current) clearTimeout(infoTimer.current);
+    infoTimer.current = setTimeout(function(){
+      setInfoSaving(true);
+      dbSaveConfig(info).catch(function(e){ console.warn('설정 저장 실패:', e); }).finally(function(){ setInfoSaving(false); });
+    }, 1500);
+    return function(){ if(infoTimer.current) clearTimeout(infoTimer.current); };
+  },[info]);
+
+  const loadConfig = async () => {
+    try {
+      const cfg = await dbLoadConfig();
+      if (cfg && Object.keys(cfg).length > 0) {
+        setInfo(Object.assign({}, INFO_DEFAULT, cfg));
+      }
+    } catch(e) { console.warn('설정 로드 실패:', e); }
+  };
 
   const doSort = arr => arr.slice().sort((a,b)=>{
     const ao=a.sortOrder!==undefined?a.sortOrder:(a.createdAt||0);
@@ -885,7 +908,21 @@ function App() {
       onConfirm: async()=>{ setDelBusy(true); try{ for(const s of sel) await dbDelete(s.id); setListings(p=>p.filter(l=>!sel.find(s=>s.id===l.id))); setConfirmDlg(null); }catch(e){alert('삭제 실패:'+e.message);} finally{setDelBusy(false);} }
     });
   };
-  const onToggle = async id=>{ const updated=listings.map(x=>x.id===id?{...x,printSel:!x.printSel}:x); setListings(updated); const ls=updated.find(x=>x.id===id); if(ls) await dbUpsert(ls).catch(e=>console.warn(e)); };
+
+  // ── 체크박스: DB 저장 없이 로컬 state만 즉시 변경, 별도 debounce로 저장 ──
+  const toggleTimer = useRef({});
+  const onToggle = (id) => {
+    setListings(prev=>{
+      const updated = prev.map(x=>x.id===id?{...x,printSel:!x.printSel}:x);
+      // debounce: 300ms 후 DB 저장
+      if (toggleTimer.current[id]) clearTimeout(toggleTimer.current[id]);
+      toggleTimer.current[id] = setTimeout(function(){
+        const ls = updated.find(x=>x.id===id);
+        if (ls) dbUpsert(ls).catch(e=>console.warn(e));
+      }, 300);
+      return updated;
+    });
+  };
 
   const filteredListings = dealFilter==='all' ? listings : listings.filter(l=>{
     if (dealFilter==='sale') return l.dealType==='sale';
@@ -905,8 +942,6 @@ function App() {
     {id:'tour',     label:'🏠 투어 카드'},
   ];
 
-  // ── 고정 헤더 높이 계산 (header + tabbar) ──
-  // header: ~60px, tabbar: ~48px → total ~108px
   const FIXED_TOP = 108;
 
   return (
@@ -915,7 +950,6 @@ function App() {
       {showForm&&<ListingForm init={editing} onSave={onSave} onClose={()=>{setShowForm(false);setEditing(null);}} />}
       {confirmDlg&&<ConfirmModal message={confirmDlg.message} subMessage={confirmDlg.subMessage} onConfirm={confirmDlg.onConfirm} onCancel={()=>setConfirmDlg(null)} busy={delBusy} />}
 
-      {/* ── 고정 헤더 영역 ── */}
       <div className="no-print" style={{position:'fixed',top:0,left:0,right:0,zIndex:100}}>
         <header style={{background:'#0d1b2a',padding:'12px 24px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
           <div>
@@ -959,14 +993,10 @@ function App() {
                     <option value="sale">매매</option>
                     <option value="jeonse-monthly">전세/월세</option>
                   </select>
-                  <button onClick={()=>{
-                      const ids=new Set(filteredListings.map(l=>l.id));
-                      setListings(p=>p.map(x=>({...x,printSel:ids.has(x.id)})));
-                    }} style={{padding:'6px 14px',fontSize:'13px',background:'white',border:'1px solid #bbb',cursor:'pointer',fontFamily:'inherit'}}>전체 선택</button>
-                  <button onClick={()=>{
-                      const ids=new Set(filteredListings.map(l=>l.id));
-                      setListings(p=>p.map(x=>ids.has(x.id)?{...x,printSel:false}:x));
-                    }} style={{padding:'6px 14px',fontSize:'13px',background:'white',border:'1px solid #bbb',cursor:'pointer',fontFamily:'inherit'}}>선택 해제</button>
+                  <button onClick={()=>{ const ids=new Set(filteredListings.map(l=>l.id)); setListings(p=>p.map(x=>({...x,printSel:ids.has(x.id)}))); }}
+                    style={{padding:'6px 14px',fontSize:'13px',background:'white',border:'1px solid #bbb',cursor:'pointer',fontFamily:'inherit'}}>전체 선택</button>
+                  <button onClick={()=>{ const ids=new Set(filteredListings.map(l=>l.id)); setListings(p=>p.map(x=>ids.has(x.id)?{...x,printSel:false}:x)); }}
+                    style={{padding:'6px 14px',fontSize:'13px',background:'white',border:'1px solid #bbb',cursor:'pointer',fontFamily:'inherit'}}>선택 해제</button>
                   {filtSelCount>0&&<button onClick={onBulkDelete}
                     style={{padding:'6px 14px',fontSize:'13px',background:'white',border:'1px solid #e07070',color:'#c0392b',cursor:'pointer',fontFamily:'inherit',fontWeight:600}}>
                     선택 삭제 ({filtSelCount}건)
@@ -980,7 +1010,6 @@ function App() {
         </div>
       </div>
 
-      {/* ── 스크롤 콘텐츠 영역 (고정 헤더 높이만큼 상단 여백) ── */}
       <main style={{paddingTop:(FIXED_TOP+16)+'px',paddingLeft:'24px',paddingRight:'24px',paddingBottom:'60px',maxWidth:'1200px',margin:'0 auto'}}>
         {loading&&listings.length===0&&(
           <div style={{textAlign:'center',padding:'60px',color:'#c9a84c'}}>
@@ -1000,7 +1029,7 @@ function App() {
           <>
             {filteredListings.length===0?(
               <div style={{textAlign:'center',padding:'80px 0',color:'#bbb'}}>
-                <div style={{fontFamily:"'Noto Sans KR','Apple SD Gothic Neo',sans-serif",fontSize:'24px',marginBottom:'10px',color:'#c9a84c'}}>
+                <div style={{fontSize:'24px',marginBottom:'10px',color:'#c9a84c'}}>
                   {listings.length===0?'등록된 매물이 없습니다':'검색 결과가 없습니다'}
                 </div>
                 <div style={{fontSize:'12px',marginBottom:'20px'}}>+ 새 매물 등록 버튼을 눌러 매물을 추가하세요</div>
@@ -1022,7 +1051,7 @@ function App() {
               </div>
             )}
             <div className="no-print" style={{background:'white',border:'1px solid #e0dcd4',padding:'16px 20px',marginTop:'20px'}}>
-              <InfoPanel info={info} setInfo={setInfo} />
+              <InfoPanel info={info} setInfo={setInfo} saving={infoSaving} />
             </div>
           </>
         )}
