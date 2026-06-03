@@ -1,18 +1,20 @@
-// ── TIMES 주거 매물 관리 v1.0.0 ──
-const APP_VERSION = 'v1.4.5';
+// ── TIMES 주거 매물 관리 ──
+const APP_VERSION = 'v1.5.0';
 const { useState, useEffect, useRef } = React;
 
 // ── 상수 ──
-const PY       = 3.30579;
-const STO_CRED  = 'times-apt-sb';
+const PY        = 3.30579;
 const STO_INFO  = 'times-apt-info';
 const STO_CACHE = 'times-apt-cache';
-const TBL = 'residential_listings';
+const TBL       = 'residential_listings';
 
-// ── Supabase ──
+// ── Supabase 하드코딩 ──
+const SB_URL = 'https://vvksunsazcfroupzxgum.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ2a3N1bnNhemNmcm91cHp4Z3VtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgzMzAzNTUsImV4cCI6MjA2MzkwNjM1NX0.nFEiWAfSFYVdEFl0SJzZPJp-2E_y7cjcJsWCaEcPFDI';
+
 let _sb = null;
 const getSB  = () => _sb;
-const initSB = (url, key) => { _sb = window.supabase.createClient(url, key); return _sb; };
+const initSB = () => { _sb = window.supabase.createClient(SB_URL, SB_KEY); return _sb; };
 
 // ── DB ──
 const dbLoad = async () => {
@@ -146,62 +148,6 @@ function NaverParseModal({ onParsed, onClose }) {
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ── Supabase 연결 ──
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-function SBSetup({ onConnect }) {
-  const [url, setUrl] = useState('');
-  const [key, setKey] = useState('');
-  const [err, setErr] = useState('');
-  const [busy,setBusy] = useState(false);
-
-  const connect = async () => {
-    if (!url.trim()||!key.trim()) { setErr('URL과 API Key를 입력하세요'); return; }
-    setBusy(true); setErr('');
-    try {
-      const client = initSB(url.trim(), key.trim());
-      const { error } = await client.from(TBL).select('id').limit(1);
-      if (error) throw error;
-      localStorage.setItem(STO_CRED, JSON.stringify({url:url.trim(),key:key.trim()}));
-      onConnect();
-    } catch(e) { _sb=null; setErr('연결 실패: '+(e.message||String(e))); }
-    finally { setBusy(false); }
-  };
-
-  return (
-    <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'#f7f4ef'}}>
-      <div style={{background:'white',border:'1px solid #0d1b2a',padding:'32px',width:'100%',maxWidth:'440px'}}>
-        <div style={{fontFamily:"'Noto Sans KR','Apple SD Gothic Neo',sans-serif",fontSize:'9px',letterSpacing:'.25em',color:'#c9a84c',marginBottom:'6px'}}>TIMES REAL ESTATE</div>
-        <div style={{fontFamily:"'Noto Sans KR','Apple SD Gothic Neo',sans-serif",fontSize:'24px',fontWeight:600,color:'#0d1b2a',marginBottom:'4px'}}>주거 매물 관리</div>
-        <div style={{fontSize:'11px',color:'#888',marginBottom:'24px'}}>Supabase 프로젝트에 연결하세요</div>
-        <div style={{marginBottom:'12px'}}>
-          <div style={{fontSize:'10px',color:'#888',marginBottom:'3px'}}>Supabase Project URL</div>
-          <input value={url} onChange={e=>setUrl(e.target.value)} placeholder="https://xxxx.supabase.co"
-            style={{width:'100%',fontSize:'12px',padding:'8px 10px',border:'1px solid #e0dcd4',outline:'none'}} />
-        </div>
-        <div style={{marginBottom:'20px'}}>
-          <div style={{fontSize:'10px',color:'#888',marginBottom:'3px'}}>anon / public API Key</div>
-          <input value={key} onChange={e=>setKey(e.target.value)} placeholder="eyJ..." type="password"
-            style={{width:'100%',fontSize:'12px',padding:'8px 10px',border:'1px solid #e0dcd4',outline:'none'}} />
-        </div>
-        {err && <div style={{fontSize:'11px',color:'#c0392b',background:'#fff5f4',padding:'8px',marginBottom:'12px'}}>{err}</div>}
-        <div style={{background:'#f5f2eb',padding:'10px 12px',fontSize:'10px',color:'#888',marginBottom:'16px',lineHeight:1.7}}>
-          <strong style={{color:'#0d1b2a'}}>테이블 생성 SQL</strong><br/>
-          <code style={{fontSize:'9px',color:'#2471a3',display:'block',marginTop:'4px'}}>
-            CREATE TABLE residential_listings (id TEXT PRIMARY KEY, data JSONB NOT NULL, updated_at TIMESTAMPTZ DEFAULT NOW());<br/>
-            ALTER TABLE residential_listings ENABLE ROW LEVEL SECURITY;<br/>
-            CREATE POLICY "allow_all" ON residential_listings FOR ALL USING (true);
-          </code>
-        </div>
-        <button onClick={connect} disabled={busy}
-          style={{width:'100%',background:busy?'#888':'#0d1b2a',color:'#c9a84c',border:'none',padding:'10px',fontSize:'13px',cursor:busy?'not-allowed':'pointer',fontFamily:'inherit',letterSpacing:'.05em'}}>
-          {busy?'연결 중…':'연결하기'}
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // ── 입력 폼 ──
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function ListingForm({ init, onSave, onClose }) {
@@ -242,10 +188,10 @@ function ListingForm({ init, onSave, onClose }) {
     setShowNaver(false);
   };
 
-  const fld = (label, key, ph='') => (
+  const fld = (label, key, ph) => (
     <div>
       <div style={{fontSize:'10px',color:'#888',marginBottom:'2px'}}>{label}</div>
-      <input value={ls[key]||''} placeholder={ph} onChange={e=>set(key,e.target.value)}
+      <input value={ls[key]||''} placeholder={ph||''} onChange={e=>set(key,e.target.value)}
         style={{width:'100%',fontSize:'12px',padding:'5px 8px',border:'1px solid #e0dcd4'}} />
     </div>
   );
@@ -448,7 +394,7 @@ function LCard({ ls, onEdit, onDelete, onToggle, onDragStart, onDragOver, onDrop
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ── 브리핑 시트 (A4 가로, 7매물) ──
+// ── 브리핑 시트 (A4 가로, 6매물) ──
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function BriefingSheet({ listings, clientName, reportDate, bizName, bizAddr, agentName, agentPhone, logoSrc }) {
   const sel = listings.filter(l=>l.printSel);
@@ -459,7 +405,6 @@ function BriefingSheet({ listings, clientName, reportDate, bizName, bizAddr, age
   for (let i=0; i<sel.length; i+=CHUNK) chunks.push(sel.slice(i,i+CHUNK));
 
   const BD = '0.5pt solid #e0dcd4';
-  const BDH = '2pt solid #0d1b2a';
   const thS = { background:'#0d1b2a',color:'white',padding:'6pt 7pt',fontSize:'10pt',fontWeight:600,textAlign:'center',border:'0.5pt solid #0d1b2a',verticalAlign:'top',lineHeight:1.3 };
   const labelS = { background:'#f5f2eb',padding:'5pt 7pt',fontSize:'9pt',fontWeight:600,color:'#555',border:BD,textAlign:'center',verticalAlign:'middle',whiteSpace:'nowrap' };
   const cellS = (i) => ({ padding:'5pt 7pt',fontSize:'10pt',textAlign:'center',border:BD,background:i%2===0?'white':'#fafaf8',verticalAlign:'middle' });
@@ -469,7 +414,6 @@ function BriefingSheet({ listings, clientName, reportDate, bizName, bizAddr, age
     <>
       {chunks.map((chunk, ci) => (
         <div key={ci} className="print-only" style={{pageBreakBefore:ci>0?'always':'auto',breakBefore:ci>0?'page':'auto'}}>
-          {/* 헤더 */}
           <div style={{borderBottom:'1.5pt solid #0d1b2a',paddingBottom:'6pt',marginBottom:'10pt',display:'flex',justifyContent:'space-between',alignItems:'flex-end'}}>
             <div>
               <div style={{fontSize:'8pt',letterSpacing:'.15em',color:'#c9a84c',marginBottom:'5pt'}}>TIMES REAL ESTATE</div>
@@ -502,7 +446,6 @@ function BriefingSheet({ listings, clientName, reportDate, bizName, bizAddr, age
               </tr>
             </thead>
             <tbody>
-              {/* 거래유형 행 — 매매/전세/월세 모두 */}
               <tr>
                 <td style={{...labelS}}>거래유형</td>
                 {chunk.map((l,i)=>(
@@ -511,7 +454,6 @@ function BriefingSheet({ listings, clientName, reportDate, bizName, bizAddr, age
                   </td>
                 ))}
               </tr>
-              {/* 가격 행 — 매매/전세/보증금/월세 각각 값 있는 매물이 하나라도 있으면 행 표시 */}
               {chunk.some(l=>l.salePrice)&&(
                 <tr><td style={labelS}>매매가</td>{chunk.map((l,i)=><td key={l.id} style={hiCellS(i)}>{l.salePrice?fmtShort(l.salePrice):'—'}</td>)}</tr>
               )}
@@ -527,17 +469,14 @@ function BriefingSheet({ listings, clientName, reportDate, bizName, bizAddr, age
               {chunk.some(l=>l.mgmtFee)&&(
                 <tr><td style={labelS}>관리비/월</td>{chunk.map((l,i)=><td key={l.id} style={cellS(i)}>{l.mgmtFee?fmtShort(l.mgmtFee):'—'}</td>)}</tr>
               )}
-              {/* 면적 */}
               <tr><td style={{...labelS,borderTop:'1pt solid #ccc8c0'}}>공급면적</td>{chunk.map((l,i)=><td key={l.id} style={{...cellS(i),borderTop:'1pt solid #ccc8c0'}}>{l.supplyPy?l.supplyPy+'평':'—'}</td>)}</tr>
               <tr><td style={labelS}>전용면적</td>{chunk.map((l,i)=><td key={l.id} style={cellS(i)}>{l.exclusivePy?l.exclusivePy+'평':'—'}</td>)}</tr>
-              {/* 상세 */}
               <tr><td style={{...labelS,borderTop:'1pt solid #ccc8c0'}}>층</td>{chunk.map((l,i)=><td key={l.id} style={{...cellS(i),borderTop:'1pt solid #ccc8c0'}}>{l.floor?(l.floor+(l.totalFloor?'/'+l.totalFloor+'층':'층')):'—'}</td>)}</tr>
               {chunk.some(l=>l.rooms)&&<tr><td style={labelS}>방/욕실</td>{chunk.map((l,i)=><td key={l.id} style={cellS(i)}>{(l.rooms||'—')+'/'+(l.bathrooms||'—')}</td>)}</tr>}
               {chunk.some(l=>l.direction)&&<tr><td style={labelS}>향</td>{chunk.map((l,i)=><td key={l.id} style={cellS(i)}>{l.direction||'—'}</td>)}</tr>}
               {chunk.some(l=>l.moveIn)&&<tr><td style={labelS}>입주가능</td>{chunk.map((l,i)=><td key={l.id} style={cellS(i)}>{l.moveIn||'—'}</td>)}</tr>}
               {chunk.some(l=>l.approvalDate)&&<tr><td style={labelS}>사용승인</td>{chunk.map((l,i)=><td key={l.id} style={cellS(i)}>{l.approvalDate||'—'}</td>)}</tr>}
               {chunk.some(l=>l.parking)&&<tr><td style={labelS}>주차</td>{chunk.map((l,i)=><td key={l.id} style={cellS(i)}>{l.parking||'—'}</td>)}</tr>}
-              {/* 평당가 — 매매가 있는 매물이 하나라도 있으면 표시 */}
               {chunk.some(l=>l.salePrice&&l.supplyPy)&&(
                 <>
                   <tr><td style={{...labelS,borderTop:'1pt solid #ccc8c0',color:'#1a5276'}}>공급평당가</td>
@@ -546,7 +485,6 @@ function BriefingSheet({ listings, clientName, reportDate, bizName, bizAddr, age
                     {chunk.map((l,i)=><td key={l.id} style={{...cellS(i),color:'#1a5276',fontWeight:600}}>{fmtPy(l.salePrice,l.exclusivePy)}</td>)}</tr>
                 </>
               )}
-              {/* 비고 */}
               {chunk.some(l=>l.notes)&&(
                 <tr><td style={{...labelS,borderTop:'1pt solid #ccc8c0'}}>비고</td>
                   {chunk.map((l,i)=><td key={l.id} style={{...cellS(i),borderTop:'1pt solid #ccc8c0',fontSize:'9pt',textAlign:l.notes?'left':'center'}}>{l.notes||'—'}</td>)}</tr>
@@ -554,7 +492,6 @@ function BriefingSheet({ listings, clientName, reportDate, bizName, bizAddr, age
             </tbody>
           </table>
 
-          {/* 푸터 */}
           <div style={{marginTop:'8pt',borderTop:'1pt solid #c9a84c',paddingTop:'5pt',display:'flex',justifyContent:'space-between',alignItems:'center',fontSize:'9pt',color:'#555'}}>
             <span style={{display:'flex',alignItems:'center',gap:'8pt'}}>
               {logoSrc&&<img src={logoSrc} style={{height:'18pt',objectFit:'contain'}} />}
@@ -609,7 +546,6 @@ function TourCards({ listings, clientName, reportDate, bizName, agentName, agent
   var CHUNK = 4;
   var chunks = [];
   for (var i=0; i<sel.length; i+=CHUNK) chunks.push(sel.slice(i,i+CHUNK));
-
   var globalIdx = function(ci,li){ return ci*CHUNK+li; };
 
   var Card = function(props) {
@@ -619,7 +555,6 @@ function TourCards({ listings, clientName, reportDate, bizName, agentName, agent
     var num = '①②③④⑤⑥⑦⑧⑨⑩'[idx]||String(idx+1);
     return (
       <div style={{border:'1pt solid #0d1b2a',padding:'8pt 10pt',display:'flex',flexDirection:'column',overflow:'hidden',WebkitPrintColorAdjust:'exact',printColorAdjust:'exact'}}>
-        {/* 카드 헤더 */}
         <div style={{borderBottom:'1.5pt solid #0d1b2a',paddingBottom:'6pt',marginBottom:'8pt',display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
           <div style={{display:'flex',alignItems:'flex-start',gap:'6pt'}}>
             <span style={{fontFamily:"'Noto Sans KR','Apple SD Gothic Neo',sans-serif",fontSize:'20pt',fontWeight:700,color:'#0d1b2a',lineHeight:1,flexShrink:0}}>
@@ -638,7 +573,6 @@ function TourCards({ listings, clientName, reportDate, bizName, agentName, agent
           </span>
         </div>
 
-        {/* 가격 블록 */}
         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'5pt',marginBottom:'7pt'}}>
           {isSale&&ls.salePrice&&(
             <div style={{background:'#eaf0f8',padding:'6pt 9pt',gridColumn:'1/-1'}}>
@@ -666,7 +600,6 @@ function TourCards({ listings, clientName, reportDate, bizName, agentName, agent
           )}
         </div>
 
-        {/* 상세 정보 */}
         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'4pt',marginBottom:'6pt'}}>
           {[
             ['관리비', ls.mgmtFee?fmt(ls.mgmtFee)+'/월':'—', null, 1],
@@ -688,7 +621,6 @@ function TourCards({ listings, clientName, reportDate, bizName, agentName, agent
           })}
         </div>
 
-        {/* 평단가 (매매만) */}
         {isSale&&ls.salePrice&&(ls.supplyPy||ls.exclusivePy)&&(
           <div style={{display:'flex',gap:'10pt',marginBottom:'6pt',fontSize:'9pt',color:'#1a5276'}}>
             {ls.supplyPy&&<span>공급평당 <strong>{fmtPy(ls.salePrice,ls.supplyPy)}</strong></span>}
@@ -696,7 +628,6 @@ function TourCards({ listings, clientName, reportDate, bizName, agentName, agent
           </div>
         )}
 
-        {/* 메모란 */}
         <div style={{flex:1,border:'0.5pt dashed #ccc',padding:'5pt 7pt',marginTop:'4pt',display:'flex',flexDirection:'column'}}>
           <div style={{fontSize:'8pt',color:'#bbb',marginBottom:'4pt',letterSpacing:'.05em'}}>✎ 메모</div>
           {ls.notes ? (
@@ -716,12 +647,9 @@ function TourCards({ listings, clientName, reportDate, bizName, agentName, agent
     );
   };
 
-  /* ── 인쇄 전용 페이지들 ── */
   var pages = chunks.map(function(chunk, ci) {
     return (
       <div key={ci} className="tour-page print-only">
-
-        {/* 헤더 */}
         <div style={{borderBottom:'1.5pt solid #0d1b2a',paddingBottom:'7pt',marginBottom:'12pt',
           display:'flex',justifyContent:'space-between',alignItems:'flex-end',flexShrink:0}}>
           <div>
@@ -742,7 +670,6 @@ function TourCards({ listings, clientName, reportDate, bizName, agentName, agent
           </div>
         </div>
 
-        {/* 2×2 그리드 */}
         <div style={{flex:1,display:'grid',gridTemplateColumns:'1fr 1fr',gridTemplateRows:'1fr 1fr',gap:'6pt',minHeight:0,overflow:'hidden'}}>
           {chunk.map(function(l,li){
             return <Card key={l.id} ls={l} idx={globalIdx(ci,li)} />;
@@ -752,7 +679,6 @@ function TourCards({ listings, clientName, reportDate, bizName, agentName, agent
           })}
         </div>
 
-        {/* 푸터 */}
         <div style={{marginTop:'6pt',borderTop:'1pt solid #c9a84c',paddingTop:'5pt',
           display:'flex',alignItems:'center',flexShrink:0,position:'relative'}}>
           <span style={{display:'flex',alignItems:'center',gap:'8pt',flex:1}}>
@@ -771,7 +697,6 @@ function TourCards({ listings, clientName, reportDate, bizName, agentName, agent
     );
   });
 
-  /* ── 화면 미리보기 ── */
   var screenView = (
     <div className="screen-only">
       <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))',gap:'16px'}}>
@@ -841,7 +766,7 @@ function ConfirmModal({ message, subMessage, onConfirm, onCancel, busy }) {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // ── 출력 정보 패널 ──
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-function InfoPanel({ info, setInfo, onDisconnect }) {
+function InfoPanel({ info, setInfo }) {
   const [open, setOpen] = useState(false);
   const f = (k,v) => setInfo(p=>({...p,[k]:v}));
   const inp = (label, key, ph) => (
@@ -855,8 +780,6 @@ function InfoPanel({ info, setInfo, onDisconnect }) {
     <div style={{borderTop:'1px solid #e0dcd4',marginTop:'8px',paddingTop:'8px'}}>
       <div onClick={()=>setOpen(!open)} style={{cursor:'pointer',fontSize:'12px',color:'#888',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
         <span>{open?'▲':'▼'} 출력 정보 설정 (상호 · 담당자 · 로고)</span>
-        <button onClick={e=>{e.stopPropagation();if(confirm('Supabase 연결을 해제하시겠습니까?'))onDisconnect();}}
-          style={{fontSize:'10px',padding:'2px 8px',background:'none',border:'1px solid #ddd',color:'#888',cursor:'pointer'}}>연결 해제</button>
       </div>
       {open&&(
         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px',marginTop:'10px'}}>
@@ -906,9 +829,10 @@ function App() {
   }));
   const reportDate = new Date().toISOString().slice(0,10);
 
+  // ── 앱 시작시 바로 Supabase 연결 및 데이터 로드 ──
   useEffect(()=>{
-    const cred = localStorage.getItem(STO_CRED);
-    if (cred) { try { const {url,key}=JSON.parse(cred); initSB(url,key); loadData(); } catch{} }
+    initSB();
+    loadData();
   },[]);
   useEffect(()=>{ saveInfo(info); },[info]);
 
@@ -934,9 +858,6 @@ function App() {
       catch(e3){setLoadErr(err.message||'연결 실패');}
     } finally { setLoading(false); }
   };
-
-  const handleConnect    = ()=>{ loadData(); };
-  const handleDisconnect = ()=>{ localStorage.removeItem(STO_CRED); _sb=null; setDbReady(false); setListings([]); };
 
   const handleDragStart = id=>setDragId(id);
   const handleDragOver  = id=>{
@@ -966,7 +887,6 @@ function App() {
   };
   const onToggle = async id=>{ const updated=listings.map(x=>x.id===id?{...x,printSel:!x.printSel}:x); setListings(updated); const ls=updated.find(x=>x.id===id); if(ls) await dbUpsert(ls).catch(e=>console.warn(e)); };
 
-  // 필터 (selCount 계산 전에 정의)
   const filteredListings = dealFilter==='all' ? listings : listings.filter(l=>{
     if (dealFilter==='sale') return l.dealType==='sale';
     if (dealFilter==='jeonse-monthly') return l.dealType==='jeonse'||l.dealType==='monthly'||l.dealType==='rent';
@@ -974,11 +894,6 @@ function App() {
   });
   const selCount     = listings.filter(l=>l.printSel).length;
   const filtSelCount = filteredListings.filter(l=>l.printSel).length;
-
-  if (!dbReady&&!loading) {
-    const cred=localStorage.getItem(STO_CRED);
-    if (!cred) return <SBSetup onConnect={handleConnect} />;
-  }
 
   const printCSS = view==='briefing'
     ? '@media print { @page { size:A4 landscape !important; margin:10mm 10mm 14mm; } body,main { padding:0 !important; margin:0 !important; max-width:none !important; } .print-only { display:block !important; } .screen-only { display:none !important; } .no-print { display:none !important; } }'
@@ -990,75 +905,83 @@ function App() {
     {id:'tour',     label:'🏠 투어 카드'},
   ];
 
+  // ── 고정 헤더 높이 계산 (header + tabbar) ──
+  // header: ~60px, tabbar: ~48px → total ~108px
+  const FIXED_TOP = 108;
+
   return (
     <>
       <style dangerouslySetInnerHTML={{__html: printCSS}} />
       {showForm&&<ListingForm init={editing} onSave={onSave} onClose={()=>{setShowForm(false);setEditing(null);}} />}
       {confirmDlg&&<ConfirmModal message={confirmDlg.message} subMessage={confirmDlg.subMessage} onConfirm={confirmDlg.onConfirm} onCancel={()=>setConfirmDlg(null)} busy={delBusy} />}
 
-      <header className="no-print" style={{background:'#0d1b2a',padding:'12px 24px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-        <div>
-          <div style={{fontSize:'10px',letterSpacing:'.22em',color:'#c9a84c',marginBottom:'2px'}}>TIMES REAL ESTATE</div>
-          <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
-            <div style={{fontFamily:"'Noto Sans KR','Apple SD Gothic Neo',sans-serif",fontSize:'22px',color:'white',fontWeight:500,lineHeight:1}}>주거 매물 관리</div>
-            <span style={{fontSize:'12px',color:'#0d1b2a',background:'#c9a84c',padding:'2px 8px',fontWeight:700,borderRadius:'2px'}}>{APP_VERSION}</span>
+      {/* ── 고정 헤더 영역 ── */}
+      <div className="no-print" style={{position:'fixed',top:0,left:0,right:0,zIndex:100}}>
+        <header style={{background:'#0d1b2a',padding:'12px 24px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+          <div>
+            <div style={{fontSize:'10px',letterSpacing:'.22em',color:'#c9a84c',marginBottom:'2px'}}>TIMES REAL ESTATE</div>
+            <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
+              <div style={{fontFamily:"'Noto Sans KR','Apple SD Gothic Neo',sans-serif",fontSize:'22px',color:'white',fontWeight:500,lineHeight:1}}>주거 매물 관리</div>
+              <span style={{fontSize:'12px',color:'#0d1b2a',background:'#c9a84c',padding:'2px 8px',fontWeight:700,borderRadius:'2px'}}>{APP_VERSION}</span>
+            </div>
           </div>
-        </div>
-        <div style={{display:'flex',gap:'10px',alignItems:'center'}}>
-          {loading&&<span style={{fontSize:'12px',color:'#c9a84c'}}>↺ 동기화 중…</span>}
-          {!loading&&loadErr&&<span style={{fontSize:'12px',color:'#e07070'}}>⚠ 캐시 표시 중</span>}
-          {!loading&&!loadErr&&<span style={{fontSize:'12px',color:'#9aacbe'}}>☁ 연결됨 · 선택 {selCount}건</span>}
-          {view!=='list'&&<button onClick={()=>window.print()} style={{padding:'7px 16px',background:'#c9a84c',color:'white',border:'none',cursor:'pointer',fontSize:'13px',fontFamily:'inherit',fontWeight:600}}>🖨 인쇄</button>}
-        </div>
-      </header>
+          <div style={{display:'flex',gap:'10px',alignItems:'center'}}>
+            {loading&&<span style={{fontSize:'12px',color:'#c9a84c'}}>↺ 동기화 중…</span>}
+            {!loading&&loadErr&&<span style={{fontSize:'12px',color:'#e07070'}}>⚠ 연결 오류</span>}
+            {!loading&&!loadErr&&dbReady&&<span style={{fontSize:'12px',color:'#9aacbe'}}>☁ 연결됨 · 선택 {selCount}건</span>}
+            {view!=='list'&&<button onClick={()=>window.print()} style={{padding:'7px 16px',background:'#c9a84c',color:'white',border:'none',cursor:'pointer',fontSize:'13px',fontFamily:'inherit',fontWeight:600}}>🖨 인쇄</button>}
+          </div>
+        </header>
 
-      <div className="no-print" style={{background:'#ede9e1',borderBottom:'1px solid #d8d4cc',padding:'0 24px'}}>
-        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',maxWidth:'1200px',margin:'0 auto'}}>
-          <div style={{display:'flex'}}>
-            {TABS.map(t=>(
-              <button key={t.id} onClick={()=>setView(t.id)}
-                style={{padding:'11px 20px',fontSize:'14px',border:'none',cursor:'pointer',background:'none',
-                  borderBottom:view===t.id?'3px solid #c9a84c':'3px solid transparent',
-                  color:view===t.id?'#0d1b2a':'#999',fontWeight:view===t.id?700:400,fontFamily:'inherit'}}>
-                {t.label}
-              </button>
-            ))}
-          </div>
-          <div style={{display:'flex',gap:'8px',alignItems:'center',padding:'8px 0'}}>
-            {view!=='list'&&(
-              <input value={clientName} onChange={e=>setClientName(e.target.value)}
-                placeholder="고객명 입력"
-                style={{fontSize:'14px',padding:'6px 12px',border:'1px solid #ccc8c0',width:'180px'}} />
-            )}
-            {view==='list'&&(
-              <>
-                <select value={dealFilter} onChange={e=>setDealFilter(e.target.value)}
-                  style={{padding:'6px 10px',fontSize:'13px',border:'1px solid #bbb',background:'white',cursor:'pointer',fontFamily:'inherit'}}>
-                  <option value="all">전체 거래유형</option>
-                  <option value="sale">매매</option>
-                  <option value="jeonse-monthly">전세/월세</option>
-                </select>
-                <button onClick={()=>{
-                    const ids=new Set(filteredListings.map(l=>l.id));
-                    setListings(p=>p.map(x=>({...x,printSel:ids.has(x.id)})));
-                  }} style={{padding:'6px 14px',fontSize:'13px',background:'white',border:'1px solid #bbb',cursor:'pointer',fontFamily:'inherit'}}>전체 선택</button>
-                <button onClick={()=>{
-                    const ids=new Set(filteredListings.map(l=>l.id));
-                    setListings(p=>p.map(x=>ids.has(x.id)?{...x,printSel:false}:x));
-                  }} style={{padding:'6px 14px',fontSize:'13px',background:'white',border:'1px solid #bbb',cursor:'pointer',fontFamily:'inherit'}}>선택 해제</button>
-                {filtSelCount>0&&<button onClick={onBulkDelete}
-                  style={{padding:'6px 14px',fontSize:'13px',background:'white',border:'1px solid #e07070',color:'#c0392b',cursor:'pointer',fontFamily:'inherit',fontWeight:600}}>
-                  선택 삭제 ({filtSelCount}건)
-                </button>}
-                <button onClick={()=>{setEditing(blank());setShowForm(true);}}
-                  style={{padding:'7px 18px',background:'#c9a84c',color:'white',border:'none',cursor:'pointer',fontSize:'14px',fontFamily:'inherit',fontWeight:600}}>+ 새 매물 등록</button>
-              </>
-            )}
+        <div style={{background:'#ede9e1',borderBottom:'1px solid #d8d4cc',padding:'0 24px'}}>
+          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',maxWidth:'1200px',margin:'0 auto'}}>
+            <div style={{display:'flex'}}>
+              {TABS.map(t=>(
+                <button key={t.id} onClick={()=>setView(t.id)}
+                  style={{padding:'11px 20px',fontSize:'14px',border:'none',cursor:'pointer',background:'none',
+                    borderBottom:view===t.id?'3px solid #c9a84c':'3px solid transparent',
+                    color:view===t.id?'#0d1b2a':'#999',fontWeight:view===t.id?700:400,fontFamily:'inherit'}}>
+                  {t.label}
+                </button>
+              ))}
+            </div>
+            <div style={{display:'flex',gap:'8px',alignItems:'center',padding:'8px 0'}}>
+              {view!=='list'&&(
+                <input value={clientName} onChange={e=>setClientName(e.target.value)}
+                  placeholder="고객명 입력"
+                  style={{fontSize:'14px',padding:'6px 12px',border:'1px solid #ccc8c0',width:'180px'}} />
+              )}
+              {view==='list'&&(
+                <>
+                  <select value={dealFilter} onChange={e=>setDealFilter(e.target.value)}
+                    style={{padding:'6px 10px',fontSize:'13px',border:'1px solid #bbb',background:'white',cursor:'pointer',fontFamily:'inherit'}}>
+                    <option value="all">전체 거래유형</option>
+                    <option value="sale">매매</option>
+                    <option value="jeonse-monthly">전세/월세</option>
+                  </select>
+                  <button onClick={()=>{
+                      const ids=new Set(filteredListings.map(l=>l.id));
+                      setListings(p=>p.map(x=>({...x,printSel:ids.has(x.id)})));
+                    }} style={{padding:'6px 14px',fontSize:'13px',background:'white',border:'1px solid #bbb',cursor:'pointer',fontFamily:'inherit'}}>전체 선택</button>
+                  <button onClick={()=>{
+                      const ids=new Set(filteredListings.map(l=>l.id));
+                      setListings(p=>p.map(x=>ids.has(x.id)?{...x,printSel:false}:x));
+                    }} style={{padding:'6px 14px',fontSize:'13px',background:'white',border:'1px solid #bbb',cursor:'pointer',fontFamily:'inherit'}}>선택 해제</button>
+                  {filtSelCount>0&&<button onClick={onBulkDelete}
+                    style={{padding:'6px 14px',fontSize:'13px',background:'white',border:'1px solid #e07070',color:'#c0392b',cursor:'pointer',fontFamily:'inherit',fontWeight:600}}>
+                    선택 삭제 ({filtSelCount}건)
+                  </button>}
+                  <button onClick={()=>{setEditing(blank());setShowForm(true);}}
+                    style={{padding:'7px 18px',background:'#c9a84c',color:'white',border:'none',cursor:'pointer',fontSize:'14px',fontFamily:'inherit',fontWeight:600}}>+ 새 매물 등록</button>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
-      <main style={{padding:'16px 24px 60px',maxWidth:'1200px',margin:'0 auto'}}>
+      {/* ── 스크롤 콘텐츠 영역 (고정 헤더 높이만큼 상단 여백) ── */}
+      <main style={{paddingTop:(FIXED_TOP+16)+'px',paddingLeft:'24px',paddingRight:'24px',paddingBottom:'60px',maxWidth:'1200px',margin:'0 auto'}}>
         {loading&&listings.length===0&&(
           <div style={{textAlign:'center',padding:'60px',color:'#c9a84c'}}>
             <div style={{fontSize:'24px',marginBottom:'8px'}}>☁</div>
@@ -1099,7 +1022,7 @@ function App() {
               </div>
             )}
             <div className="no-print" style={{background:'white',border:'1px solid #e0dcd4',padding:'16px 20px',marginTop:'20px'}}>
-              <InfoPanel info={info} setInfo={setInfo} onDisconnect={handleDisconnect} />
+              <InfoPanel info={info} setInfo={setInfo} />
             </div>
           </>
         )}
