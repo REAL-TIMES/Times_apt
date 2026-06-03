@@ -10,7 +10,7 @@ const TBL       = 'residential_listings';
 
 // ── Supabase 하드코딩 ──
 const SB_URL = 'https://vvksunsazcfroupzxgum.supabase.co';
-const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ2a3N1bnNhemNmcm91cHp4Z3VtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgzMzAzNTUsImV4cCI6MjA2MzkwNjM1NX0.nFEiWAfSFYVdEFl0SJzZPJp-2E_y7cjcJsWCaEcPFDI';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ2a3N1bnNhemNmcm91cHp4Z3VtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4NjMxODgsImV4cCI6MjA5NTQzOTE4OH0.51YbHy_MmJRTYW1BK8bVcZexizCtoMkVKVa_sRREL2A';
 
 let _sb = null;
 const getSB  = () => _sb;
