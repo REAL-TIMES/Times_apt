@@ -17,11 +17,11 @@ ${text.slice(0, 4000)}
 - address: 주소
 - propType: "apt"(아파트), "villa"(빌라/다세대/연립주택), "officetel"(오피스텔) - 텍스트의 건물 종류로 자동 판단
 - dealType: "sale"(매매), "jeonse"(전세), "monthly"(월세/반전세), "rent"(렌트)
-- salePrice: 매매가 만원 숫자 (예: 120000)
-- jeonsePrice: 전세가 만원 숫자 (예: 166560)
-- deposit: 보증금 만원 숫자 (월세/반전세일 때)
-- monthlyRent: 월세 만원 숫자
-- mgmtFee: 관리비 만원 숫자 (예: 25)
+- salePrice: 매매가 (만원 단위 숫자)
+- jeonsePrice: 전세가 (만원 단위 숫자)
+- deposit: 보증금 (만원 단위 숫자, 월세/반전세일 때)
+- monthlyRent: 월세 (만원 단위 숫자)
+- mgmtFee: 관리비 (만원 단위 숫자, 예: 25)
 - supplyM2: 공급면적 m2 숫자 (예: 80.63)
 - exclusiveM2: 전용면적 m2 숫자 (예: 59.96)
 - floor: 해당층 (예: "중", "15", "고", "저")
@@ -37,12 +37,28 @@ ${text.slice(0, 4000)}
 - units: 세대수 숫자
 - notes: 매물 제목/특이사항
 
+★★ 금액 단위 변환 규칙 (반드시 만원 단위 숫자로) ★★
+모든 가격(salePrice, jeonsePrice, deposit, monthlyRent)은 "만원 단위" 숫자로 변환합니다.
+- "1억" = 10000 (만원)
+- "2억" = 20000 (만원)
+- "10억" = 100000 (만원)
+- "16억 6,560" = 166560 (만원)
+- "12억" = 120000 (만원)
+- "600" (월세) = 600 (만원)
+- "5,000만원" = 5000 (만원)
+- "3000" = 3000 (만원)
+
+★ "억"을 변환할 때 0을 하나 더 붙이지 마세요. 1억은 10000이지 100000이 아닙니다.
+★ 검산: (억 숫자 × 10000) + 만원 숫자 = 최종값
+   예) "2억/600" → 보증금 = 2×10000 = 20000, 월세 = 600
+   예) "16억 6560" → 전세가 = 16×10000 + 6560 = 166560
+
 중요:
 - 면적은 반드시 m2로 추출 (평 계산은 자동)
-- 반전세는 dealType="monthly"에 deposit+monthlyRent로 분리
+- 반전세/월세 "2억/600" 형식은 dealType="monthly", deposit=20000, monthlyRent=600 으로 분리
 - propType: 아파트→apt, 빌라/다세대/연립→villa, 오피스텔→officetel
 - approvalDate: "사용승인일", "준공", "건축" 관련 날짜 추출
-- 반드시 JSON 객체만 반환, 앞뒤 설명 텍스트 없이, 마크다운 코드블록 없이.`;
+JSON만 반환, 마크다운 없이.`;
 
   try {
     const r = await fetch('https://api.anthropic.com/v1/messages', {
@@ -53,63 +69,23 @@ ${text.slice(0, 4000)}
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-5',
-        max_tokens: 1024,
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
         messages: [{ role: 'user', content: prompt }],
       }),
     });
-
-    // API 응답이 JSON이 아닐 수 있으므로 text로 먼저 받기
-    const rawBody = await r.text();
-
-    let data;
-    try {
-      data = JSON.parse(rawBody);
-    } catch(e) {
-      throw new Error('API 응답 파싱 실패: ' + rawBody.slice(0, 200));
-    }
-
-    if (!r.ok) {
-      const msg = (data.error && data.error.message) ? data.error.message : JSON.stringify(data).slice(0, 200);
-      throw new Error('API 오류 ' + r.status + ': ' + msg);
-    }
-
-    if (!data.content || !data.content[0] || !data.content[0].text) {
-      throw new Error('API 응답에 content 없음: ' + JSON.stringify(data).slice(0, 200));
-    }
-
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error ? data.error.message : 'API error');
     const raw = data.content[0].text.trim();
-
-    // JSON 블록 추출 — 마크다운 코드블록 또는 중괄호 직접 추출
-    let clean = raw
-      .replace(/^```json\s*/i, '')
-      .replace(/^```\s*/i, '')
-      .replace(/```\s*$/i, '')
-      .trim();
-
-    // 중괄호 시작~끝 직접 추출 (앞뒤 설명 텍스트 있을 경우 대비)
-    const braceStart = clean.indexOf('{');
-    const braceEnd = clean.lastIndexOf('}');
-    if (braceStart !== -1 && braceEnd !== -1 && braceEnd > braceStart) {
-      clean = clean.slice(braceStart, braceEnd + 1);
-    }
-
-    let parsed;
-    try {
-      parsed = JSON.parse(clean);
-    } catch(e) {
-      throw new Error('JSON 파싱 실패. 모델 응답: ' + clean.slice(0, 300));
-    }
-
+    const clean = raw.replace(/^```json\s*/,'').replace(/^```\s*/,'').replace(/```\s*$/,'').trim();
+    const parsed = JSON.parse(clean);
     const PY = 3.30579;
     if (parsed.supplyM2) parsed.supplyPy = String(+(parseFloat(parsed.supplyM2)/PY).toFixed(2));
     if (parsed.exclusiveM2) parsed.exclusivePy = String(+(parseFloat(parsed.exclusiveM2)/PY).toFixed(2));
-    ['salePrice','jeonsePrice','deposit','monthlyRent','mgmtFee','totalFloor','rooms','bathrooms','units'].forEach(function(k) {
+    ['salePrice','jeonsePrice','deposit','monthlyRent','mgmtFee','totalFloor','rooms','bathrooms','units'].forEach(k => {
       if (parsed[k] !== null && parsed[k] !== undefined) parsed[k] = String(parsed[k]);
     });
-
     res.status(200).json(parsed);
-
   } catch(e) {
     res.status(500).json({ error: e.message });
   }
