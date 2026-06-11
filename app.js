@@ -879,7 +879,7 @@ function App() {
   const [infoSaving, setInfoSaving]= useState(false);
   const [info, setInfo] = useState(INFO_DEFAULT);
   // ── 정렬 ──
-  const [sortKey, setSortKey]   = useState('manual'); // manual/date/price/area/name/perpy
+  const [sortKey, setSortKey]   = useState('date'); // manual/date/price/area/name/perpy
   const [sortDir, setSortDir]   = useState('desc');   // asc/desc
   // ── 검색/필터 ──
   const [showFilter, setShowFilter] = useState(false);
