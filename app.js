@@ -1,5 +1,5 @@
 // ── TIMES 주거 매물 관리 ──
-const APP_VERSION = 'v1.5.1';
+const APP_VERSION = 'v1.6.0';
 const { useState, useEffect, useRef } = React;
 
 // ── 상수 ──
@@ -73,6 +73,35 @@ const fmtShort = v => {
 };
 const fmtPy = (price, py) => (!price||!py||n(py)===0)?'—': Math.round(n(price)/n(py)).toLocaleString()+'만원';
 const perPy = (price, py) => (!price||!py||n(py)===0)?null: Math.round(n(price)/n(py));
+
+// ── 작성일 포맷 (YYYY.MM.DD) ──
+const fmtDate = ts => {
+  if (!ts) return '';
+  const d = new Date(ts);
+  if (isNaN(d.getTime())) return '';
+  const y=d.getFullYear(), m=('0'+(d.getMonth()+1)).slice(-2), day=('0'+d.getDate()).slice(-2);
+  return y+'.'+m+'.'+day;
+};
+
+// ── 행정동 추출: 주소에서 "○○동/읍/면/가" 추출 ──
+const extractDong = addr => {
+  if (!addr) return '';
+  // "서울특별시 서초구 반포동 ..." → "반포동"
+  const m = String(addr).match(/([가-힣]+(?:동|읍|면|[0-9]+가))(?:\s|$|[0-9])/);
+  return m ? m[1] : '';
+};
+
+// ── 정렬용: 매물의 대표 금액 (거래유형 기준) ──
+const sortPrice = l => {
+  if (l.dealType==='sale')   return n(l.salePrice);
+  if (l.dealType==='jeonse') return n(l.jeonsePrice);
+  // 월세/렌트: 보증금 + 월세×100 으로 환산 비교 (대략적 가중)
+  return n(l.deposit) + n(l.monthlyRent)*100;
+};
+// ── 정렬용: 대표 면적 (공급 우선, 없으면 전용) ──
+const sortArea = l => n(l.supplyPy) || n(l.exclusivePy) || 0;
+// ── 정렬용: 평당가 (매매만 의미) ──
+const sortPerPy = l => (l.dealType==='sale') ? (perPy(l.salePrice, l.supplyPy)||0) : 0;
 
 const DEAL_LABEL = { sale:'매매', jeonse:'전세', monthly:'월세', rent:'렌트' };
 const DEAL_COLOR = { sale:'#1a5276', jeonse:'#196f3d', monthly:'#7d6608', rent:'#6e2f1a' };
@@ -333,14 +362,32 @@ function ListingForm({ init, onSave, onClose }) {
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ── 범위 입력 (최소/최대) ──
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function RangeField({ label, min, max, setMin, setMax }) {
+  return (
+    <div>
+      <div style={{fontSize:'11px',color:'#888',marginBottom:'4px'}}>{label}</div>
+      <div style={{display:'flex',alignItems:'center',gap:'4px'}}>
+        <input value={min} onChange={e=>setMin(e.target.value)} placeholder="최소" type="number"
+          style={{width:'100%',fontSize:'12px',padding:'6px 6px',border:'1px solid #e0dcd4',boxSizing:'border-box'}} />
+        <span style={{color:'#bbb',fontSize:'12px'}}>~</span>
+        <input value={max} onChange={e=>setMax(e.target.value)} placeholder="최대" type="number"
+          style={{width:'100%',fontSize:'12px',padding:'6px 6px',border:'1px solid #e0dcd4',boxSizing:'border-box'}} />
+      </div>
+    </div>
+  );
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // ── 매물 카드 ──
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-function LCard({ ls, onEdit, onDelete, onToggle, onDragStart, onDragOver, onDrop, isDragging }) {
+function LCard({ ls, onEdit, onDelete, onToggle, onDragStart, onDragOver, onDrop, isDragging, draggable }) {
   const isSale = ls.dealType==='sale';
   return (
-    <div draggable onDragStart={onDragStart} onDragOver={e=>{e.preventDefault();onDragOver();}} onDrop={onDrop}
+    <div draggable={draggable!==false} onDragStart={onDragStart} onDragOver={onDragOver?(e=>{e.preventDefault();onDragOver();}):undefined} onDrop={onDrop}
       style={{background:'white',border:'1px solid #e0dcd4',position:'relative',overflow:'hidden',
-        opacity:isDragging?0.4:1,cursor:'grab',transition:'opacity .15s',fontFamily:"'Noto Sans KR','Apple SD Gothic Neo',sans-serif"}}>
+        opacity:isDragging?0.4:1,cursor:draggable!==false?'grab':'default',transition:'opacity .15s',fontFamily:"'Noto Sans KR','Apple SD Gothic Neo',sans-serif"}}>
       <div style={{position:'absolute',left:0,top:0,bottom:0,width:'3px',background:ls.printSel?DEAL_COLOR[ls.dealType]||'#c9a84c':'#e0dcd4'}} />
       <div style={{padding:'14px 14px 10px 17px'}}>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'8px'}}>
@@ -395,9 +442,12 @@ function LCard({ ls, onEdit, onDelete, onToggle, onDragStart, onDragOver, onDrop
         {ls.notes && <div style={{marginTop:'5px',fontSize:'12px',color:'#2471a3',lineHeight:1.5}}>{ls.notes.slice(0,50)}{ls.notes.length>50?'…':''}</div>}
       </div>
 
-      <div style={{borderTop:'1px solid #f0ede6',padding:'6px 14px',display:'flex',gap:'6px',justifyContent:'flex-end',background:'#fafaf8'}}>
-        <button onClick={onEdit} style={{fontSize:'12px',padding:'4px 12px',background:'none',border:'1px solid #c9a84c',color:'#c9a84c',cursor:'pointer'}}>편집</button>
-        <button onClick={onDelete} style={{fontSize:'12px',padding:'4px 12px',background:'none',border:'1px solid #ddd',color:'#888',cursor:'pointer'}}>삭제</button>
+      <div style={{borderTop:'1px solid #f0ede6',padding:'6px 14px',display:'flex',gap:'6px',justifyContent:'space-between',alignItems:'center',background:'#fafaf8'}}>
+        <span style={{fontSize:'11px',color:'#bbb'}}>{ls.createdAt?fmtDate(ls.createdAt):''}</span>
+        <div style={{display:'flex',gap:'6px'}}>
+          <button onClick={onEdit} style={{fontSize:'12px',padding:'4px 12px',background:'none',border:'1px solid #c9a84c',color:'#c9a84c',cursor:'pointer'}}>편집</button>
+          <button onClick={onDelete} style={{fontSize:'12px',padding:'4px 12px',background:'none',border:'1px solid #ddd',color:'#888',cursor:'pointer'}}>삭제</button>
+        </div>
       </div>
     </div>
   );
@@ -828,6 +878,19 @@ function App() {
   const [clientName, setClientName]= useState('');
   const [infoSaving, setInfoSaving]= useState(false);
   const [info, setInfo] = useState(INFO_DEFAULT);
+  // ── 정렬 ──
+  const [sortKey, setSortKey]   = useState('manual'); // manual/date/price/area/name/perpy
+  const [sortDir, setSortDir]   = useState('desc');   // asc/desc
+  // ── 검색/필터 ──
+  const [showFilter, setShowFilter] = useState(false);
+  const [qName,   setQName]   = useState('');   // 단지명 텍스트
+  const [qDongs,  setQDongs]  = useState([]);   // 선택된 행정동 목록
+  const [qSaleMin,setQSaleMin]= useState(''); const [qSaleMax,setQSaleMax]= useState('');
+  const [qDepMin, setQDepMin] = useState(''); const [qDepMax, setQDepMax] = useState('');
+  const [qRentMin,setQRentMin]= useState(''); const [qRentMax,setQRentMax]= useState('');
+  const [qSupMin, setQSupMin] = useState(''); const [qSupMax, setQSupMax] = useState('');
+  const [qExcMin, setQExcMin] = useState(''); const [qExcMax, setQExcMax] = useState('');
+  const [qRooms,  setQRooms]  = useState(''); const [qBaths,  setQBaths]  = useState('');
   const reportDate = new Date().toISOString().slice(0,10);
 
   // info 변경 debounce 타이머
@@ -924,11 +987,76 @@ function App() {
     });
   };
 
-  const filteredListings = dealFilter==='all' ? listings : listings.filter(l=>{
+  // ── 거래유형 필터 ──
+  let working = dealFilter==='all' ? listings.slice() : listings.filter(l=>{
     if (dealFilter==='sale') return l.dealType==='sale';
     if (dealFilter==='jeonse-monthly') return l.dealType==='jeonse'||l.dealType==='monthly'||l.dealType==='rent';
     return true;
   });
+
+  // ── 검색/상세 필터 ──
+  const inRange = (val, min, max) => {
+    const v = n(val);
+    if (min!=='' && v < n(min)) return false;
+    if (max!=='' && v > n(max)) return false;
+    return true;
+  };
+  working = working.filter(l => {
+    // 단지명 텍스트
+    if (qName.trim() && !(l.complexName||'').toLowerCase().includes(qName.trim().toLowerCase())) return false;
+    // 행정동
+    if (qDongs.length > 0) {
+      const d = extractDong(l.address) || l.dong;
+      if (!qDongs.includes(d)) return false;
+    }
+    // 금액 (해당 거래유형에만 적용)
+    if ((qSaleMin!==''||qSaleMax!=='') && l.dealType==='sale' && !inRange(l.salePrice,qSaleMin,qSaleMax)) return false;
+    if ((qDepMin!==''||qDepMax!=='')) {
+      // 전세가 또는 보증금
+      const depVal = l.dealType==='jeonse' ? l.jeonsePrice : l.deposit;
+      if ((l.dealType==='jeonse'||l.dealType==='monthly'||l.dealType==='rent') && !inRange(depVal,qDepMin,qDepMax)) return false;
+    }
+    if ((qRentMin!==''||qRentMax!=='') && (l.dealType==='monthly'||l.dealType==='rent') && !inRange(l.monthlyRent,qRentMin,qRentMax)) return false;
+    // 면적
+    if ((qSupMin!==''||qSupMax!=='') && !inRange(l.supplyPy,qSupMin,qSupMax)) return false;
+    if ((qExcMin!==''||qExcMax!=='') && !inRange(l.exclusivePy,qExcMin,qExcMax)) return false;
+    // 방/욕실 (이상)
+    if (qRooms!=='' && n(l.rooms) < n(qRooms)) return false;
+    if (qBaths!=='' && n(l.bathrooms) < n(qBaths)) return false;
+    return true;
+  });
+
+  // ── 정렬 ──
+  if (sortKey !== 'manual') {
+    const dir = sortDir==='asc' ? 1 : -1;
+    working.sort((a,b)=>{
+      let av, bv;
+      if (sortKey==='date')      { av=a.createdAt||0; bv=b.createdAt||0; }
+      else if (sortKey==='price'){ av=sortPrice(a); bv=sortPrice(b); }
+      else if (sortKey==='area') { av=sortArea(a); bv=sortArea(b); }
+      else if (sortKey==='perpy'){ av=sortPerPy(a); bv=sortPerPy(b); }
+      else if (sortKey==='name') { return dir * (a.complexName||'').localeCompare(b.complexName||'', 'ko'); }
+      else { av=0; bv=0; }
+      return dir * (av - bv);
+    });
+  }
+  const filteredListings = working;
+
+  // ── 행정동 목록 (중복 제거) ──
+  const dongOptions = (function(){
+    const set = {};
+    listings.forEach(l=>{ const d=extractDong(l.address)||l.dong; if(d) set[d]=true; });
+    return Object.keys(set).sort((a,b)=>a.localeCompare(b,'ko'));
+  })();
+
+  // ── 활성 필터 개수 ──
+  const activeFilterCount = [qName.trim(), qDongs.length>0?'1':'', qSaleMin,qSaleMax,qDepMin,qDepMax,qRentMin,qRentMax,qSupMin,qSupMax,qExcMin,qExcMax,qRooms,qBaths].filter(x=>x!=='').length;
+  const resetFilters = () => {
+    setQName(''); setQDongs([]);
+    setQSaleMin(''); setQSaleMax(''); setQDepMin(''); setQDepMax(''); setQRentMin(''); setQRentMax('');
+    setQSupMin(''); setQSupMax(''); setQExcMin(''); setQExcMax(''); setQRooms(''); setQBaths('');
+  };
+
   const selCount     = listings.filter(l=>l.printSel).length;
   const filtSelCount = filteredListings.filter(l=>l.printSel).length;
 
@@ -993,6 +1121,25 @@ function App() {
                     <option value="sale">매매</option>
                     <option value="jeonse-monthly">전세/월세</option>
                   </select>
+                  <select value={sortKey} onChange={e=>setSortKey(e.target.value)}
+                    style={{padding:'6px 10px',fontSize:'13px',border:'1px solid #bbb',background:'white',cursor:'pointer',fontFamily:'inherit'}}>
+                    <option value="manual">직접 정렬</option>
+                    <option value="date">작성일</option>
+                    <option value="price">금액</option>
+                    <option value="area">면적</option>
+                    <option value="name">단지명</option>
+                    <option value="perpy">평당가</option>
+                  </select>
+                  {sortKey!=='manual'&&(
+                    <button onClick={()=>setSortDir(d=>d==='asc'?'desc':'asc')} title="정렬 방향"
+                      style={{padding:'6px 10px',fontSize:'13px',background:'white',border:'1px solid #bbb',cursor:'pointer',fontFamily:'inherit'}}>
+                      {sortKey==='name' ? (sortDir==='asc'?'ㄱ→ㅎ':'ㅎ→ㄱ') : (sortDir==='asc'?'▲ 낮은순':'▼ 높은순')}
+                    </button>
+                  )}
+                  <button onClick={()=>setShowFilter(s=>!s)}
+                    style={{padding:'6px 14px',fontSize:'13px',background:showFilter||activeFilterCount>0?'#0d1b2a':'white',color:showFilter||activeFilterCount>0?'#c9a84c':'#555',border:'1px solid '+(activeFilterCount>0?'#0d1b2a':'#bbb'),cursor:'pointer',fontFamily:'inherit',fontWeight:activeFilterCount>0?600:400}}>
+                    🔍 검색{activeFilterCount>0?' ('+activeFilterCount+')':''}
+                  </button>
                   <button onClick={()=>{ const ids=new Set(filteredListings.map(l=>l.id)); setListings(p=>p.map(x=>({...x,printSel:ids.has(x.id)}))); }}
                     style={{padding:'6px 14px',fontSize:'13px',background:'white',border:'1px solid #bbb',cursor:'pointer',fontFamily:'inherit'}}>전체 선택</button>
                   <button onClick={()=>{ const ids=new Set(filteredListings.map(l=>l.id)); setListings(p=>p.map(x=>ids.has(x.id)?{...x,printSel:false}:x)); }}
@@ -1027,14 +1174,86 @@ function App() {
 
         {!loading&&view==='list'&&(
           <>
+            {showFilter&&(
+              <div className="no-print" style={{background:'white',border:'1px solid #d8d4cc',padding:'18px 20px',marginBottom:'18px'}}>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'14px',borderBottom:'1px solid #ede9e1',paddingBottom:'10px'}}>
+                  <span style={{fontSize:'13px',fontWeight:700,color:'#0d1b2a'}}>🔍 상세 검색</span>
+                  <div style={{display:'flex',gap:'8px'}}>
+                    <button onClick={resetFilters} style={{fontSize:'12px',padding:'4px 12px',background:'none',border:'1px solid #ccc',color:'#888',cursor:'pointer',fontFamily:'inherit'}}>초기화</button>
+                    <button onClick={()=>setShowFilter(false)} style={{fontSize:'12px',padding:'4px 12px',background:'none',border:'1px solid #ccc',color:'#888',cursor:'pointer',fontFamily:'inherit'}}>닫기</button>
+                  </div>
+                </div>
+
+                {/* 단지명 + 행정동 */}
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px',marginBottom:'14px'}}>
+                  <div>
+                    <div style={{fontSize:'11px',color:'#888',marginBottom:'4px'}}>단지명 검색</div>
+                    <input value={qName} onChange={e=>setQName(e.target.value)} placeholder="단지/건물명 일부 입력"
+                      style={{width:'100%',fontSize:'13px',padding:'7px 10px',border:'1px solid #e0dcd4',boxSizing:'border-box'}} />
+                  </div>
+                  <div>
+                    <div style={{fontSize:'11px',color:'#888',marginBottom:'4px'}}>행정동 {qDongs.length>0&&<span style={{color:'#c9a84c'}}>({qDongs.length} 선택)</span>}</div>
+                    {dongOptions.length===0 ? (
+                      <div style={{fontSize:'12px',color:'#ccc',padding:'7px 0'}}>등록된 주소가 없습니다</div>
+                    ):(
+                      <div style={{display:'flex',flexWrap:'wrap',gap:'5px',maxHeight:'72px',overflowY:'auto'}}>
+                        {dongOptions.map(d=>(
+                          <button key={d} onClick={()=>setQDongs(prev=>prev.includes(d)?prev.filter(x=>x!==d):[...prev,d])}
+                            style={{fontSize:'12px',padding:'4px 10px',border:'1px solid '+(qDongs.includes(d)?'#0d1b2a':'#e0dcd4'),
+                              background:qDongs.includes(d)?'#0d1b2a':'white',color:qDongs.includes(d)?'#c9a84c':'#888',
+                              cursor:'pointer',fontFamily:'inherit'}}>
+                            {d}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* 금액 */}
+                <div style={{fontSize:'11px',fontWeight:600,color:'#c9a84c',letterSpacing:'.05em',marginBottom:'6px'}}>거래금액 (만원)</div>
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'12px',marginBottom:'14px'}}>
+                  <RangeField label="매매가" min={qSaleMin} max={qSaleMax} setMin={setQSaleMin} setMax={setQSaleMax} />
+                  <RangeField label="전세/보증금" min={qDepMin} max={qDepMax} setMin={setQDepMin} setMax={setQDepMax} />
+                  <RangeField label="월세" min={qRentMin} max={qRentMax} setMin={setQRentMin} setMax={setQRentMax} />
+                </div>
+
+                {/* 면적 + 방/욕실 */}
+                <div style={{fontSize:'11px',fontWeight:600,color:'#c9a84c',letterSpacing:'.05em',marginBottom:'6px'}}>면적 (평) · 방/욕실</div>
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr 1fr',gap:'12px'}}>
+                  <RangeField label="공급면적" min={qSupMin} max={qSupMax} setMin={setQSupMin} setMax={setQSupMax} />
+                  <RangeField label="전용면적" min={qExcMin} max={qExcMax} setMin={setQExcMin} setMax={setQExcMax} />
+                  <div>
+                    <div style={{fontSize:'11px',color:'#888',marginBottom:'4px'}}>방 (이상)</div>
+                    <input value={qRooms} onChange={e=>setQRooms(e.target.value)} placeholder="예) 3" type="number"
+                      style={{width:'100%',fontSize:'12px',padding:'6px 8px',border:'1px solid #e0dcd4',boxSizing:'border-box'}} />
+                  </div>
+                  <div>
+                    <div style={{fontSize:'11px',color:'#888',marginBottom:'4px'}}>욕실 (이상)</div>
+                    <input value={qBaths} onChange={e=>setQBaths(e.target.value)} placeholder="예) 2" type="number"
+                      style={{width:'100%',fontSize:'12px',padding:'6px 8px',border:'1px solid #e0dcd4',boxSizing:'border-box'}} />
+                  </div>
+                </div>
+                <div style={{marginTop:'12px',fontSize:'12px',color:'#888',textAlign:'right'}}>
+                  검색 결과 <strong style={{color:'#0d1b2a'}}>{filteredListings.length}</strong>건
+                </div>
+              </div>
+            )}
+
+            {sortKey!=='manual'&&(
+              <div className="no-print" style={{fontSize:'11px',color:'#aaa',marginBottom:'10px'}}>
+                ※ 정렬 적용 중에는 드래그 순서 변경이 비활성화됩니다 (직접 정렬 선택 시 가능)
+              </div>
+            )}
+
             {filteredListings.length===0?(
               <div style={{textAlign:'center',padding:'80px 0',color:'#bbb'}}>
                 <div style={{fontSize:'24px',marginBottom:'10px',color:'#c9a84c'}}>
                   {listings.length===0?'등록된 매물이 없습니다':'검색 결과가 없습니다'}
                 </div>
-                <div style={{fontSize:'12px',marginBottom:'20px'}}>+ 새 매물 등록 버튼을 눌러 매물을 추가하세요</div>
-                <button onClick={()=>{setEditing(blank());setShowForm(true);}}
-                  style={{padding:'10px 24px',background:'#c9a84c',color:'white',border:'none',cursor:'pointer',fontSize:'13px',fontFamily:'inherit'}}>+ 첫 매물 등록</button>
+                <div style={{fontSize:'12px',marginBottom:'20px'}}>{listings.length===0?'+ 새 매물 등록 버튼을 눌러 매물을 추가하세요':'검색 조건을 변경하거나 초기화해보세요'}</div>
+                {listings.length===0&&<button onClick={()=>{setEditing(blank());setShowForm(true);}}
+                  style={{padding:'10px 24px',background:'#c9a84c',color:'white',border:'none',cursor:'pointer',fontSize:'13px',fontFamily:'inherit'}}>+ 첫 매물 등록</button>}
               </div>
             ):(
               <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))',gap:'16px'}}>
@@ -1043,9 +1262,10 @@ function App() {
                     onEdit={()=>{setEditing(ls);setShowForm(true);}}
                     onDelete={()=>onDelete(ls.id, ls.complexName)}
                     onToggle={()=>onToggle(ls.id)}
-                    onDragStart={()=>handleDragStart(ls.id)}
-                    onDragOver={()=>handleDragOver(ls.id)}
-                    onDrop={handleDrop}
+                    onDragStart={sortKey==='manual'?(()=>handleDragStart(ls.id)):undefined}
+                    onDragOver={sortKey==='manual'?(()=>handleDragOver(ls.id)):undefined}
+                    onDrop={sortKey==='manual'?handleDrop:undefined}
+                    draggable={sortKey==='manual'}
                     isDragging={dragId===ls.id} />
                 ))}
               </div>
