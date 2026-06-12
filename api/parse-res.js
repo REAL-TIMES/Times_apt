@@ -1,5 +1,4 @@
 // api/parse-res.js — 네이버 주거 매물 텍스트 파싱 v1.4.0
-// v1.4.0: 단지 총세대수 · 사용승인일을 '단지 기초정보' 위치 기반으로 우선 추출
 export default async function handler(req, res) {
   if (req.method !== 'POST') { res.status(405).end(); return; }
   const { text } = req.body;
@@ -13,65 +12,63 @@ export default async function handler(req, res) {
 ${text.slice(0, 4000)}
 
 추출할 필드 (없으면 null):
-- complexName: 단지명/건물명
-- dong: 동 (숫자만, 예: "106")
-- address: 주소
-- propType: "apt"(아파트), "villa"(빌라/다세대/연립주택), "officetel"(오피스텔) - 텍스트의 건물 종류로 자동 판단
+- complexName: 단지명/건물명 (예: "신반포자이")
+- dong: 동 (숫자만, 예: "101")
+- ho: 호수 (숫자만, 예: "1902")
+- address: 주소 (예: "서울특별시 서초구 잠원동 160")
+- propType: "apt"(아파트), "villa"(빌라/다세대/연립주택), "officetel"(오피스텔)
 - dealType: "sale"(매매), "jeonse"(전세), "monthly"(월세/반전세), "rent"(렌트)
 - salePrice: 매매가 (만원 단위 숫자)
 - jeonsePrice: 전세가 (만원 단위 숫자)
 - deposit: 보증금 (만원 단위 숫자, 월세/반전세일 때)
 - monthlyRent: 월세 (만원 단위 숫자)
-- mgmtFee: 관리비 (만원 단위 숫자, 예: 25)
-- supplyM2: 공급면적 제곱미터(㎡) 숫자만 (예: 80.63) — 단위 ㎡로 표기된 값
-- supplyPyText: 공급면적 평(평형) 숫자만 (예: 24.4) — 단위 "평"으로 표기된 값
-- exclusiveM2: 전용면적 제곱미터(㎡) 숫자만 (예: 59.96) — 단위 ㎡로 표기된 값
-- exclusivePyText: 전용면적 평 숫자만 (예: 18.1) — 단위 "평"으로 표기된 값
-- floor: 해당층 (예: "중", "15", "고", "저")
-- totalFloor: 총층 숫자
+- mgmtFee: 관리비 (만원 단위 숫자, 예: 50)
+- supplyM2: 공급면적 제곱미터(㎡) 숫자만 — 단위가 ㎡로만 표기된 값
+- supplyPyText: 공급면적 평 숫자만 (예: 45.53) — 단위에 "평"이 포함된 값
+- exclusiveM2: 전용면적 제곱미터(㎡) 숫자만 — 단위가 ㎡로만 표기된 값
+- exclusivePyText: 전용면적 평 숫자만 (예: 34.76) — 단위에 "평"이 포함된 값
+- floor: 해당층 (예: "고", "중", "저", "15")
+- totalFloor: 총층 숫자 (예: 28)
 - rooms: 방수 숫자
 - bathrooms: 욕실수 숫자
 - direction: 향 (예: "남향")
-- moveIn: 입주가능일 (예: "즉시입주", "2026년 10월 30일")
-- approvalDate: 사용승인일 (아래 ★단지 기초정보 규칙 참고)
-- parking: 주차 (예: "6대")
+- moveIn: 입주가능일 (예: "즉시입주")
+- approvalDate: 사용승인일 → 반드시 "YYYY.MM" 형식 (아래 규칙 참고)
+- parking: 주차 → "세대당 N대" 형식 (아래 규칙 참고)
 - elevator: 엘리베이터 (예: "1대")
-- heating: 난방 (예: "개별난방/도시가스")
-- units: 단지 총세대수 (아래 ★단지 기초정보 규칙 참고)
-- notes: 매물 제목/특이사항
+- heating: 난방 (예: "지역난방")
+- units: 세대수 숫자만 (예: 607)
+- notes: 매물 특이사항/홍보문구 (예: "46형 슈퍼A급 공동ok 보증금조정ok")
 
-★★ 단지 기초정보 규칙 (units · approvalDate, 매우 중요) ★★
-- 페이지 상단/좌측에 단지 기초정보가 라벨 없이 다음 순서로 나열됩니다:
-    [단지명] / [매물유형] / [총세대수] / [총동수] / [사용승인일] / [면적범위]
-    예) "인시그니아반포 / 오피스텔 / 148세대 / 총 2동 / 2025.05.30 / 144.13㎡~346.29㎡"
-- units = 이 나열의 3번째 항목인 "○○세대"의 숫자 (= 단지 총세대수). 예: 148
-- approvalDate = 이 나열의 5번째 항목인 날짜. 예: "2025.05.30"
-- ★주의: 매물 상세 영역에도 "세대수"가 나올 수 있으나 그것은 '해당 면적 세대수'이며
-  units 가 아닙니다. 반드시 위 단지 기초정보 나열의 총세대수를 우선 사용하세요.
-  (예: 단지 기초정보 148세대 + 매물 상세 36세대 → units=148)
-- 위 나열 패턴이 보이지 않으면(빌라·주택 등) 매물 상세 정보에서 총세대수/사용승인일을 찾고,
-  그래도 없으면 해당 필드는 null. 임의로 지어내지 마세요.
+★★ 호수 추출 ★★
+- "101 1902" 또는 "101동 1902호" 형식에서 동은 dong="101", 호수는 ho="1902"
+- 숫자만 추출 (호/동 글자 제외)
 
-★★ 면적 추출 규칙 (매우 중요) ★★
-- ㎡(제곱미터)와 평(평형)은 절대 혼동하지 마세요. 단위를 반드시 보고 판단합니다.
-- 단위가 "㎡", "m2", "제곱미터"로 표기된 값 → supplyM2 / exclusiveM2 에만 넣습니다.
-- 단위가 "평", "평형"으로 표기된 값 → supplyPyText / exclusivePyText 에만 넣습니다.
-- 네이버는 보통 "84.96㎡/59.96㎡" 처럼 공급/전용을 ㎡로 함께 표기합니다. 앞이 공급, 뒤가 전용입니다.
-- ㎡ 값은 대개 소수점이 있습니다 (84.96). 평 값을 ㎡ 칸에 넣지 마세요.
-- 해당 단위로 표기된 값이 없으면 그 필드는 null. 임의로 환산해서 채우지 마세요.
-  (예: "25평"만 있고 ㎡ 표기가 없으면 → supplyPyText="25", supplyM2=null)
-- ★주의: 위 단지 기초정보의 "면적범위"(예: 144.13㎡~346.29㎡)는 단지 전체 면적 범위이며
-  개별 매물 면적이 아닙니다. supplyM2/exclusiveM2 에는 '매물 상세'의 개별 면적을 사용하세요.
+★★ 사용승인일 형식 (반드시 YYYY.MM) ★★
+- "2018. 7. 27." → "2018.07"
+- "2021.11.24" → "2021.11"
+- 연도와 월만 사용, 월은 2자리(앞에 0), 일(日)은 버립니다.
 
-★★ 금액 단위 변환 규칙 (반드시 만원 단위 숫자로) ★★
-- "1억" = 10000 / "2억" = 20000 / "10억" = 100000 / "12억" = 120000
-- "16억 6,560" = 166560 / "5,000만원" = 5000 / "600"(월세) = 600
-- "억"을 변환할 때 0을 하나 더 붙이지 마세요. 1억은 10000이지 100000이 아닙니다.
+★★ 주차 형식 (반드시 "세대당 N대") ★★
+- "981대 (세대당 1.61대)" → "세대당 1.61대"
+- "세대당 1.61대"만 추출. 총 대수는 버립니다.
+- 세대당 정보가 없고 총 대수만 있으면 그대로 (예: "981대")
+
+★★ 면적 추출 (매우 중요) ★★
+- 네이버는 "45.53평㎡", "45.53평", "34.76평 (전용률 76%)" 처럼 평 단위로 표기하는 경우가 많습니다.
+- 숫자 뒤에 "평"이 붙어 있으면 그 값은 평입니다 → supplyPyText / exclusivePyText 에 넣으세요.
+  ("45.53평㎡"는 45.53이 평입니다. ㎡ 기호에 속지 마세요.)
+- 순수하게 ㎡ 단위로만 표기된 경우만 supplyM2 / exclusiveM2 에 넣습니다.
+- "공급면적 45.53평" → supplyPyText="45.53"
+- "전용면적 34.76평" → exclusivePyText="34.76"
+- 해당 단위 표기가 없으면 그 필드는 null. 임의 환산 금지.
+
+★★ 금액 단위 변환 (반드시 만원 단위 숫자) ★★
+- "1억" = 10000 / "2억" = 20000 / "10억" = 100000
+- "1억/900" → dealType="monthly", deposit=10000, monthlyRent=900
+- "16억 6,560" = 166560 / "5,000만원" = 5000
+- "억"에 0을 더 붙이지 마세요. 1억은 10000이지 100000이 아닙니다.
 - 검산: (억 숫자 × 10000) + 만원 숫자 = 최종값
-  예) "2억/600" → dealType="monthly", deposit=20000, monthlyRent=600
-  예) "16억 6560" → 166560
-- ★주의: 단지 기초정보의 "최근 매매 실거래가"나 단지 가격범위(예: "매매 15억~58억")는
-  단지 전체 시세이며 이 매물의 가격이 아닙니다. salePrice 등에는 '이 매물'의 가격만 넣으세요.
 
 기타:
 - propType: 아파트→apt, 빌라/다세대/연립→villa, 오피스텔→officetel
@@ -99,20 +96,15 @@ JSON만 반환, 마크다운 없이.`;
     const PY = 3.30579;
 
     // ── 면적 보정: ㎡ 우선, 없으면 평으로 환산 ──
-    // 공급면적
     var sM2 = parsed.supplyM2 ? parseFloat(parsed.supplyM2) : null;
     var sPy = parsed.supplyPyText ? parseFloat(parsed.supplyPyText) : null;
     if (sM2 && !isNaN(sM2)) {
-      // ㎡ 있으면 ㎡ 기준
       parsed.supplyM2 = String(+sM2.toFixed(2));
       parsed.supplyPy = String(+(sM2 / PY).toFixed(2));
     } else if (sPy && !isNaN(sPy)) {
-      // ㎡ 없고 평만 있으면 평 기준으로 ㎡ 환산
       parsed.supplyPy = String(+sPy.toFixed(2));
       parsed.supplyM2 = String(+(sPy * PY).toFixed(2));
     }
-
-    // 전용면적
     var eM2 = parsed.exclusiveM2 ? parseFloat(parsed.exclusiveM2) : null;
     var ePy = parsed.exclusivePyText ? parseFloat(parsed.exclusivePyText) : null;
     if (eM2 && !isNaN(eM2)) {
@@ -122,12 +114,25 @@ JSON만 반환, 마크다운 없이.`;
       parsed.exclusivePy = String(+ePy.toFixed(2));
       parsed.exclusiveM2 = String(+(ePy * PY).toFixed(2));
     }
-
-    // 보조 필드 제거 (앱에서 안 씀)
     delete parsed.supplyPyText;
     delete parsed.exclusivePyText;
 
-    ['salePrice','jeonsePrice','deposit','monthlyRent','mgmtFee','totalFloor','rooms','bathrooms','units'].forEach(k => {
+    // ── 사용승인일 보정: YYYY.MM 강제 ──
+    if (parsed.approvalDate) {
+      var am = String(parsed.approvalDate).match(/(\d{4})[.\s]*(\d{1,2})/);
+      if (am) {
+        var mm = ('0' + am[2]).slice(-2);
+        parsed.approvalDate = am[1] + '.' + mm;
+      }
+    }
+
+    // ── 주차 보정: "세대당 N대" 우선 추출 ──
+    if (parsed.parking) {
+      var pm = String(parsed.parking).match(/세대당\s*([0-9.]+)\s*대/);
+      if (pm) parsed.parking = '세대당 ' + pm[1] + '대';
+    }
+
+    ['salePrice','jeonsePrice','deposit','monthlyRent','mgmtFee','totalFloor','rooms','bathrooms','units','dong','ho'].forEach(k => {
       if (parsed[k] !== null && parsed[k] !== undefined) parsed[k] = String(parsed[k]);
     });
     res.status(200).json(parsed);
