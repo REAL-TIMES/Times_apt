@@ -343,25 +343,6 @@ function ListingForm({ init, onSave, onClose }) {
           {fld('입주가능일','moveIn','예) 즉시입주')}
         </div>
 
-        <div style={{marginBottom:'16px',display:'grid',gridTemplateColumns:'200px 1fr',gap:'10px',alignItems:'end'}}>
-          <div>
-            <div style={{fontSize:'10px',color:'#888',marginBottom:'2px'}}>작성일</div>
-            <input type="date"
-              value={ls.createdAt?new Date(ls.createdAt-(new Date()).getTimezoneOffset()*60000).toISOString().slice(0,10):''}
-              onChange={e=>{
-                if(!e.target.value){ return; }
-                // 기존 시각(시/분/초)은 유지하고 날짜만 교체
-                var old = ls.createdAt ? new Date(ls.createdAt) : new Date();
-                var parts = e.target.value.split('-');
-                var nd = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]),
-                  old.getHours(), old.getMinutes(), old.getSeconds());
-                set('createdAt', nd.getTime());
-              }}
-              style={{width:'100%',fontSize:'12px',padding:'5px 8px',border:'1px solid #e0dcd4',fontFamily:'inherit'}} />
-          </div>
-          <div style={{fontSize:'11px',color:'#aaa',paddingBottom:'6px'}}>※ 목록 정렬(작성일순)에 반영됩니다</div>
-        </div>
-
         <div style={{marginBottom:'16px'}}>
           <div style={{fontSize:'10px',color:'#888',marginBottom:'2px'}}>비고 / 특이사항</div>
           <textarea value={ls.notes||''} rows={3} onChange={e=>set('notes',e.target.value)}
@@ -937,6 +918,7 @@ function App() {
   const [delBusy,    setDelBusy]   = useState(false);
   const [dealFilter, setDealFilter]= useState('all');
   const [clientName, setClientName]= useState('');
+  const [reportDate, setReportDate]= useState(new Date().toISOString().slice(0,10));
   const [infoSaving, setInfoSaving]= useState(false);
   const [info, setInfo] = useState(INFO_DEFAULT);
   // ── 정렬 ──
@@ -952,7 +934,6 @@ function App() {
   const [qSupMin, setQSupMin] = useState(''); const [qSupMax, setQSupMax] = useState('');
   const [qExcMin, setQExcMin] = useState(''); const [qExcMax, setQExcMax] = useState('');
   const [qRooms,  setQRooms]  = useState(''); const [qBaths,  setQBaths]  = useState('');
-  const reportDate = new Date().toISOString().slice(0,10);
 
   // info 변경 debounce 타이머
   const infoTimer = useRef(null);
@@ -1170,9 +1151,14 @@ function App() {
             </div>
             <div style={{display:'flex',gap:'8px',alignItems:'center',padding:'8px 0'}}>
               {view!=='list'&&(
-                <input value={clientName} onChange={e=>setClientName(e.target.value)}
-                  placeholder="고객명 입력"
-                  style={{fontSize:'14px',padding:'6px 12px',border:'1px solid #ccc8c0',width:'180px'}} />
+                <>
+                  <input value={clientName} onChange={e=>setClientName(e.target.value)}
+                    placeholder="고객명 입력"
+                    style={{fontSize:'14px',padding:'6px 12px',border:'1px solid #ccc8c0',width:'160px'}} />
+                  <input type="date" value={reportDate} onChange={e=>setReportDate(e.target.value)}
+                    title="인쇄물에 표시될 날짜"
+                    style={{fontSize:'14px',padding:'6px 10px',border:'1px solid #ccc8c0',fontFamily:'inherit'}} />
+                </>
               )}
               {view==='list'&&(
                 <>
