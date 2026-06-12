@@ -1,5 +1,5 @@
 // ── TIMES 주거 매물 관리 ──
-const APP_VERSION = 'v1.7.1';
+const APP_VERSION = 'v1.7.2';
 const { useState, useEffect, useRef } = React;
 
 // ── 상수 ──
@@ -466,8 +466,8 @@ function BriefingSheet({ listings, clientName, reportDate, bizName, bizAddr, age
   for (let i=0; i<sel.length; i+=CHUNK) chunks.push(sel.slice(i,i+CHUNK));
 
   const BD = '0.5pt solid #e0dcd4';
-  const thS = { background:'#0d1b2a',color:'white',padding:'6pt 7pt',fontSize:'10pt',fontWeight:600,textAlign:'center',border:'0.5pt solid #0d1b2a',verticalAlign:'top',lineHeight:1.3 };
-  const labelS = { background:'#1f3a52',padding:'5pt 7pt',fontSize:'9pt',fontWeight:600,color:'#ffffff',border:'0.5pt solid #1f3a52',textAlign:'center',verticalAlign:'middle',whiteSpace:'nowrap',WebkitPrintColorAdjust:'exact',printColorAdjust:'exact' };
+  const thS = { background:'#0d1b2a',color:'white',padding:'6pt 7pt',fontSize:'10pt',fontWeight:600,textAlign:'center',border:'0.5pt solid #0d1b2a',verticalAlign:'top',lineHeight:1.3,WebkitPrintColorAdjust:'exact',printColorAdjust:'exact' };
+  const labelS = { background:'#f5f2eb',padding:'5pt 7pt',fontSize:'9pt',fontWeight:600,color:'#555',border:BD,textAlign:'center',verticalAlign:'middle',whiteSpace:'nowrap',WebkitPrintColorAdjust:'exact',printColorAdjust:'exact' };
   const cellS = (i) => ({ padding:'5pt 7pt',fontSize:'10pt',textAlign:'center',border:BD,background:i%2===0?'white':'#fafaf8',verticalAlign:'middle' });
   const hiCellS = (i) => ({ padding:'5pt 7pt',fontSize:'11pt',fontWeight:700,textAlign:'center',border:BD,background:i%2===0?'#f0f7ff':'#e8f4fd',verticalAlign:'middle',color:'#1a5276' });
 
@@ -475,14 +475,14 @@ function BriefingSheet({ listings, clientName, reportDate, bizName, bizAddr, age
     <>
       {chunks.map((chunk, ci) => (
         <div key={ci} className="print-only" style={{pageBreakBefore:ci>0?'always':'auto',breakBefore:ci>0?'page':'auto'}}>
-          <div style={{background:'#0d1b2a',padding:'10pt 14pt',marginBottom:'10pt',display:'flex',justifyContent:'space-between',alignItems:'flex-end',WebkitPrintColorAdjust:'exact',printColorAdjust:'exact'}}>
+          <div style={{borderBottom:'1.5pt solid #0d1b2a',paddingBottom:'6pt',marginBottom:'10pt',display:'flex',justifyContent:'space-between',alignItems:'flex-end'}}>
             <div>
               <div style={{fontSize:'8pt',letterSpacing:'.15em',color:'#c9a84c',marginBottom:'5pt'}}>TIMES REAL ESTATE</div>
-              <div style={{fontFamily:"'Noto Sans KR','Apple SD Gothic Neo',sans-serif",fontSize:'22pt',fontWeight:700,color:'#ffffff',lineHeight:1}}>
+              <div style={{fontFamily:"'Noto Sans KR','Apple SD Gothic Neo',sans-serif",fontSize:'24pt',fontWeight:700,color:'#0d1b2a',lineHeight:1}}>
                 {clientName||'매물 브리핑 시트'}
               </div>
             </div>
-            <div style={{textAlign:'right',fontSize:'9pt',color:'#9aacbe'}}>
+            <div style={{textAlign:'right',fontSize:'9pt',color:'#aaa'}}>
               {reportDate}&nbsp;·&nbsp;총 {sel.length}건
               {chunks.length>1&&<span>&nbsp;·&nbsp;{ci+1}/{chunks.length}</span>}
             </div>
@@ -540,9 +540,9 @@ function BriefingSheet({ listings, clientName, reportDate, bizName, bizAddr, age
               {chunk.some(l=>l.parking)&&<tr><td style={labelS}>주차</td>{chunk.map((l,i)=><td key={l.id} style={cellS(i)}>{l.parking||'—'}</td>)}</tr>}
               {chunk.some(l=>l.salePrice&&l.supplyPy)&&(
                 <>
-                  <tr><td style={{...labelS,borderTop:'1pt solid #ccc8c0'}}>공급평당가</td>
+                  <tr><td style={{...labelS,borderTop:'1pt solid #ccc8c0',color:'#1a5276'}}>공급평당가</td>
                     {chunk.map((l,i)=><td key={l.id} style={{...cellS(i),borderTop:'1pt solid #ccc8c0',color:'#1a5276',fontWeight:600}}>{fmtPy(l.salePrice,l.supplyPy)}</td>)}</tr>
-                  <tr><td style={{...labelS}}>전용평당가</td>
+                  <tr><td style={{...labelS,color:'#1a5276'}}>전용평당가</td>
                     {chunk.map((l,i)=><td key={l.id} style={{...cellS(i),color:'#1a5276',fontWeight:600}}>{fmtPy(l.salePrice,l.exclusivePy)}</td>)}</tr>
                 </>
               )}
