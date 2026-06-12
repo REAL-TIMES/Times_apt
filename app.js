@@ -1,5 +1,5 @@
 // ── TIMES 주거 매물 관리 ──
-const APP_VERSION = 'v1.6.0';
+const APP_VERSION = 'v1.6.1';
 const { useState, useEffect, useRef } = React;
 
 // ── 상수 ──
@@ -207,6 +207,7 @@ function ListingForm({ init, onSave, onClose }) {
       ...prev,
       complexName: parsed.complexName || prev.complexName,
       dong:        parsed.dong        || prev.dong,
+      ho:          parsed.ho          || prev.ho,
       address:     parsed.address     || prev.address,
       propType:    parsed.propType    || prev.propType,
       dealType:    parsed.dealType    || prev.dealType,
