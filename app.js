@@ -1,5 +1,5 @@
 // ── TIMES 주거 매물 관리 ──
-const APP_VERSION = 'v1.6.1';
+const APP_VERSION = 'v1.7.0';
 const { useState, useEffect, useRef } = React;
 
 // ── 상수 ──
@@ -343,6 +343,25 @@ function ListingForm({ init, onSave, onClose }) {
           {fld('입주가능일','moveIn','예) 즉시입주')}
         </div>
 
+        <div style={{marginBottom:'16px',display:'grid',gridTemplateColumns:'200px 1fr',gap:'10px',alignItems:'end'}}>
+          <div>
+            <div style={{fontSize:'10px',color:'#888',marginBottom:'2px'}}>작성일</div>
+            <input type="date"
+              value={ls.createdAt?new Date(ls.createdAt-(new Date()).getTimezoneOffset()*60000).toISOString().slice(0,10):''}
+              onChange={e=>{
+                if(!e.target.value){ return; }
+                // 기존 시각(시/분/초)은 유지하고 날짜만 교체
+                var old = ls.createdAt ? new Date(ls.createdAt) : new Date();
+                var parts = e.target.value.split('-');
+                var nd = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]),
+                  old.getHours(), old.getMinutes(), old.getSeconds());
+                set('createdAt', nd.getTime());
+              }}
+              style={{width:'100%',fontSize:'12px',padding:'5px 8px',border:'1px solid #e0dcd4',fontFamily:'inherit'}} />
+          </div>
+          <div style={{fontSize:'11px',color:'#aaa',paddingBottom:'6px'}}>※ 목록 정렬(작성일순)에 반영됩니다</div>
+        </div>
+
         <div style={{marginBottom:'16px'}}>
           <div style={{fontSize:'10px',color:'#888',marginBottom:'2px'}}>비고 / 특이사항</div>
           <textarea value={ls.notes||''} rows={3} onChange={e=>set('notes',e.target.value)}
@@ -567,30 +586,71 @@ function BriefingSheet({ listings, clientName, reportDate, bizName, bizAddr, age
         </div>
       ))}
 
-      <div className="screen-only" style={{overflowX:'auto'}}>
-        <table style={{borderCollapse:'collapse',minWidth:'600px',fontSize:'12px',borderTop:'2px solid #0d1b2a'}}>
-          <thead>
-            <tr>
-              <th style={{background:'#0d1b2a',color:'#c9a84c',padding:'8px 10px',minWidth:'80px',textAlign:'center',borderBottom:'3px solid #c9a84c'}}>항목</th>
-              {sel.map((l,i)=>(
-                <th key={l.id} style={{background:'#0d1b2a',color:'white',padding:'8px 10px',minWidth:'130px',textAlign:'center',borderBottom:'3px solid #c9a84c'}}>
-                  <div style={{fontSize:'10px',color:DEAL_COLOR[l.dealType]||'#c9a84c',marginBottom:'2px'}}>{'①②③④⑤⑥⑦⑧⑨⑩'[i]} {DEAL_LABEL[l.dealType]}</div>
-                  <div style={{fontFamily:"'Noto Sans KR','Apple SD Gothic Neo',sans-serif",fontSize:'14px',fontWeight:700}}>{l.complexName}</div>
-                  {l.dong&&<div style={{fontSize:'10px',color:'#c9a84c'}}>{l.dong}동</div>}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {sel.some(l=>l.salePrice)&&<tr><td style={{padding:'6px 10px',background:'#f0f7ff',fontWeight:700,color:'#1a5276',textAlign:'center'}}>매매가</td>{sel.map((l,i)=><td key={l.id} style={{padding:'6px 10px',textAlign:'center',fontWeight:700,color:'#1a5276',borderBottom:'0.5px solid #f0ede6',background:i%2===0?'#f0f7ff':'#e8f4fd'}}>{l.salePrice?fmt(l.salePrice):'—'}</td>)}</tr>}
-            {sel.some(l=>l.jeonsePrice)&&<tr><td style={{padding:'6px 10px',background:'#f0fff4',fontWeight:700,color:'#196f3d',textAlign:'center'}}>전세가</td>{sel.map((l,i)=><td key={l.id} style={{padding:'6px 10px',textAlign:'center',fontWeight:700,color:'#196f3d',borderBottom:'0.5px solid #f0ede6',background:i%2===0?'#f0fff4':'#e8faf0'}}>{l.jeonsePrice?fmt(l.jeonsePrice):'—'}</td>)}</tr>}
-            {sel.some(l=>l.deposit)&&<tr><td style={{padding:'6px 10px',background:'#fafaf8',textAlign:'center'}}>보증금</td>{sel.map((l,i)=><td key={l.id} style={{padding:'6px 10px',textAlign:'center',borderBottom:'0.5px solid #f0ede6',background:i%2===0?'white':'#fafaf8'}}>{l.deposit?fmt(l.deposit):'—'}</td>)}</tr>}
-            {sel.some(l=>l.mgmtFee)&&<tr><td style={{padding:'6px 10px',background:'#fafaf8',textAlign:'center'}}>관리비</td>{sel.map((l,i)=><td key={l.id} style={{padding:'6px 10px',textAlign:'center',borderBottom:'0.5px solid #f0ede6',background:i%2===0?'white':'#fafaf8'}}>{l.mgmtFee?fmt(l.mgmtFee):'—'}</td>)}</tr>}
-            <tr><td style={{padding:'6px 10px',background:'#fafaf8',textAlign:'center'}}>공급/전용</td>{sel.map((l,i)=><td key={l.id} style={{padding:'6px 10px',textAlign:'center',borderBottom:'0.5px solid #f0ede6',background:i%2===0?'white':'#fafaf8'}}>{(l.supplyPy||'—')+'/'+(l.exclusivePy||'—')+'평'}</td>)}</tr>
-            <tr><td style={{padding:'6px 10px',background:'#fafaf8',textAlign:'center'}}>층/방/향</td>{sel.map((l,i)=><td key={l.id} style={{padding:'6px 10px',textAlign:'center',borderBottom:'0.5px solid #f0ede6',background:i%2===0?'white':'#fafaf8'}}>{(l.floor||'—')+'층 '+(l.rooms||'—')+'방 '+(l.direction||'—')}</td>)}</tr>
-            {sel.some(l=>l.salePrice&&l.supplyPy)&&<tr><td style={{padding:'6px 10px',background:'#e8f4fd',color:'#1a5276',fontWeight:700,textAlign:'center'}}>공급평당가</td>{sel.map((l,i)=><td key={l.id} style={{padding:'6px 10px',textAlign:'center',color:'#1a5276',fontWeight:600,borderBottom:'0.5px solid #f0ede6',background:i%2===0?'#f0f7ff':'#e8f4fd'}}>{fmtPy(l.salePrice,l.supplyPy)}</td>)}</tr>}
-          </tbody>
-        </table>
+      {/* ── 화면 미리보기: 6개씩 끊어 세로로 쌓기 (좌우 스크롤 제거) ── */}
+      <div className="screen-only">
+        {chunks.map((chunk, ci) => {
+          const cellPad = '10px 12px';
+          const numFor = idx => '①②③④⑤⑥⑦⑧⑨⑩'[idx] || (idx+1);
+          const row = (label, render, opt) => {
+            opt = opt || {};
+            return (
+              <tr>
+                <td style={{padding:cellPad,background:opt.labelBg||'#f5f2eb',fontWeight:600,color:opt.labelColor||'#555',textAlign:'center',whiteSpace:'nowrap',borderBottom:'1px solid #f0ede6',fontSize:'13px'}}>{label}</td>
+                {chunk.map((l,i)=>(
+                  <td key={l.id} style={{padding:cellPad,textAlign:'center',borderBottom:'1px solid #f0ede6',background:opt.cellBg?opt.cellBg(i):(i%2===0?'white':'#fafaf8'),color:opt.color||'#333',fontWeight:opt.bold?700:400,fontSize:opt.fs||'14px'}}>
+                    {render(l)}
+                  </td>
+                ))}
+              </tr>
+            );
+          };
+          return (
+            <div key={ci} style={{marginBottom:'28px'}}>
+              {chunks.length>1&&(
+                <div style={{fontSize:'12px',color:'#aaa',marginBottom:'8px',fontWeight:600}}>
+                  {ci+1} / {chunks.length} 페이지 · {chunk.length}건
+                </div>
+              )}
+              <div style={{border:'1px solid #e0dcd4',overflow:'hidden'}}>
+                <table style={{borderCollapse:'collapse',width:'100%',tableLayout:'fixed',fontSize:'13px'}}>
+                  <colgroup>
+                    <col style={{width:'92px'}} />
+                    {chunk.map((_,i)=><col key={i} />)}
+                  </colgroup>
+                  <thead>
+                    <tr>
+                      <th style={{background:'#0d1b2a',color:'#c9a84c',padding:'12px 10px',textAlign:'center',borderBottom:'3px solid #c9a84c',fontSize:'12px'}}>항목</th>
+                      {chunk.map((l,i)=>(
+                        <th key={l.id} style={{background:'#0d1b2a',color:'white',padding:'12px 10px',textAlign:'center',borderBottom:'3px solid #c9a84c',borderLeft:'1px solid #1c3148'}}>
+                          <div style={{fontSize:'11px',color:DEAL_COLOR[l.dealType]||'#c9a84c',marginBottom:'3px',fontWeight:600}}>{numFor(i+ci*CHUNK)} {DEAL_LABEL[l.dealType]}</div>
+                          <div style={{fontFamily:"'Noto Sans KR','Apple SD Gothic Neo',sans-serif",fontSize:'15px',fontWeight:700,lineHeight:1.3}}>{l.complexName}</div>
+                          {(l.dong||l.ho)&&<div style={{fontSize:'11px',color:'#c9a84c',marginTop:'2px'}}>{l.dong?l.dong+'동 ':''}{l.ho?l.ho+'호':''}</div>}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {chunk.some(l=>l.salePrice)&&row('매매가', l=>l.salePrice?fmt(l.salePrice):'—', {labelBg:'#eaf2fb',labelColor:'#1a5276',color:'#1a5276',bold:true,fs:'15px',cellBg:i=>i%2===0?'#f0f7ff':'#e8f4fd'})}
+                    {chunk.some(l=>l.jeonsePrice)&&row('전세가', l=>l.jeonsePrice?fmt(l.jeonsePrice):'—', {labelBg:'#eafaf1',labelColor:'#196f3d',color:'#196f3d',bold:true,fs:'15px',cellBg:i=>i%2===0?'#f0fff4':'#e8faf0'})}
+                    {chunk.some(l=>l.deposit)&&row('보증금', l=>l.deposit?fmt(l.deposit):'—', {bold:true,color:'#7d6608'})}
+                    {chunk.some(l=>l.monthlyRent)&&row('월세', l=>l.monthlyRent?fmt(l.monthlyRent):'—', {bold:true,color:'#7d6608'})}
+                    {chunk.some(l=>l.mgmtFee)&&row('관리비/월', l=>l.mgmtFee?fmt(l.mgmtFee):'—', {fs:'13px',color:'#666'})}
+                    {row('공급/전용', l=>(l.supplyPy||'—')+' / '+(l.exclusivePy||'—')+'평', {labelBg:'#f5f2eb'})}
+                    {chunk.some(l=>l.floor)&&row('층', l=>l.floor?(l.floor+(l.totalFloor?'/'+l.totalFloor+'층':'층')):'—')}
+                    {chunk.some(l=>l.rooms||l.bathrooms)&&row('방/욕실', l=>(l.rooms||'—')+' / '+(l.bathrooms||'—'))}
+                    {chunk.some(l=>l.direction)&&row('향', l=>l.direction||'—')}
+                    {chunk.some(l=>l.parking)&&row('주차', l=>l.parking||'—', {fs:'12px',color:'#666'})}
+                    {chunk.some(l=>l.moveIn)&&row('입주가능', l=>l.moveIn||'—', {fs:'12px',color:'#666'})}
+                    {chunk.some(l=>l.approvalDate)&&row('사용승인', l=>l.approvalDate||'—', {fs:'12px',color:'#666'})}
+                    {chunk.some(l=>l.salePrice&&l.supplyPy)&&row('공급평당가', l=>fmtPy(l.salePrice,l.supplyPy), {labelBg:'#eaf2fb',labelColor:'#1a5276',color:'#1a5276',bold:true,cellBg:i=>i%2===0?'#f0f7ff':'#e8f4fd'})}
+                    {chunk.some(l=>l.salePrice&&l.exclusivePy)&&row('전용평당가', l=>fmtPy(l.salePrice,l.exclusivePy), {labelBg:'#eaf2fb',labelColor:'#1a5276',color:'#1a5276',bold:true,cellBg:i=>i%2===0?'#f0f7ff':'#e8f4fd'})}
+                    {chunk.some(l=>l.notes)&&row('비고', l=><span style={{fontSize:'12px',color:'#2471a3',lineHeight:1.5}}>{l.notes||'—'}</span>, {})}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </>
   );
